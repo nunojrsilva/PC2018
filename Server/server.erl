@@ -1,19 +1,22 @@
 -module (server).
 -export ([server/1]).
 -import (login_manager, [start/0,login/2, create_account/2]).
+-import (state, [start/0]).
 
 % Modulo em que é necessário fazer login para entrar no chat
 % Mensagens aparecem prefixadas pelo username<
 % Room possui um array de pids e um map Pid -> Username
 
-server(Port) ->
-    Room = spawn( fun() -> room( [] ,#{}) end),
-    spawn( fun() -> start() end),
+start (Port) ->
+    %Room = spawn( fun() -> room( [] ,#{}) end),
+    State = spawn( fun() -> state:start()), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
+    Login = spawn( fun() -> login_manager:start()),
+    %spawn( fun() -> start() end),
     {ok, LSock} = gen_tcp:listen(Port, [binary, {packet, line}]),
     acceptor(LSock, Room).
 
 
-acceptor( LSock, Room)->
+acceptor ( LSock, Room)->
     %io:format("acceptor ~n"),
     {ok, Sock} = gen_tcp:accept(LSock),
     spawn( fun() -> acceptor( LSock, Room) end), % Geramos outro aceptor para permitir que outros clientes se possam conectar ao servidor
