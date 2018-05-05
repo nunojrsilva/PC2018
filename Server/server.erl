@@ -1,4 +1,4 @@
--module (servidor2).
+-module (server).
 -export ([server/1]).
 -import (login_manager, [start/0,login/2, create_account/2]).
 
