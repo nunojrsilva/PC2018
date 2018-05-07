@@ -1,25 +1,25 @@
 -module (server).
 -export ([start/1]).
 -import (login_manager, [start/0,login/2, create_account/2]). %INCOMPLETO
--import (state, [start/0]). %INCOMPLETO
+%-import (state,[]). %INCOMPLETO
 
 % Modulo que implementa um servidor para o jogo "Vaga Vermelha"
 
 start (Port) ->
     %Room = spawn( fun() -> room( [] ,#{}) end),
-    PidState = spawn( fun() -> state:start()), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
-    register(state, PidState)
-    PidLogin = spawn( fun() -> login_manager:start()), % Criar processo que se encarrega de guardar os logins e validar passwords
+    PidState = spawn ( fun() -> state:start() end), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
+    register(state, PidState),
+    PidLogin = spawn( fun() -> login_manager:start() end), % Criar processo que se encarrega de guardar os logins e validar passwords
     %spawn( fun() -> start() end),
     register(login_manager, PidLogin ),
     {ok, LSock} = gen_tcp:listen(Port, [binary, {packet, line}]),
-    acceptor(LSock, Room).
+    acceptor(LSock).
 
 
-acceptor ( LSock, Room)->
+acceptor ( LSock )->
     %io:format("acceptor ~n"),
     {ok, Sock} = gen_tcp:accept(LSock),
-    spawn( fun() -> acceptor( LSock, Room) end), % Geramos outro aceptor para permitir que outros clientes se possam conectar ao servidor
+    spawn( fun() -> acceptor( LSock ) end), % Geramos outro aceptor para permitir que outros clientes se possam conectar ao servidor
     authenticator(Sock).
 
 authenticator(Sock) ->
@@ -68,27 +68,6 @@ authenticator(Sock) ->
 .
 
 
-% room(Pids, UsernameMap) ->
-%     receive
-%         {enter, Pid, User} ->
-%             io:format("User ~p entered ~n",[User]),
-%             room([Pid | Pids], maps:put(Pid, User, UsernameMap));
-%         {line, Data, PidSender} -> % Recebemos Pid do Sender, traduzimos para username
-%             case maps:find (PidSender,UsernameMap) of
-%                 error -> % Se há erro
-%                     PidSender ! error,
-%                     room (Pids, UsernameMap)
-%                 ;
-%                 {ok, Username} -> % Se há username registado com esse pid como value...
-%                     io:format("received ~p ~n", [Data]),
-%                     [Pid ! {line, Data, Username}  || Pid <- Pids, Pid /= PidSender], % Pid != PidSender
-%                     room(Pids, UsernameMap)
-%             end
-%         ;
-%         {leave, Pid} ->
-%             io:format("user left ~n",[]),
-%             room(Pids -- [Pid], UsernameMap)
-%     end.
 
 
 user(Sock) ->
@@ -99,7 +78,7 @@ user(Sock) ->
             userOnGame(Sock, GameManager) % Entra em modo "game"
     end.
 
-userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager, que por sua vez responde ao processo state
+userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager
     receive
         {line, Data} -> % Recebemos alguma coisa do processo GameManager
             gen_tcp:send(Sock, Data),
