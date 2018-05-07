@@ -1,29 +1,29 @@
 -module (server).
--export ([server/1]).
--import (login_manager, [start/0,login/2, create_account/2]).
--import (state, [start/0]).
+-export ([start/1]).
+-import (login_manager, [start/0,login/2, create_account/2]). %INCOMPLETO
+%-import (state,[]). %INCOMPLETO
 
-% Modulo em que é necessário fazer login para entrar no chat
-% Mensagens aparecem prefixadas pelo username<
-% Room possui um array de pids e um map Pid -> Username
+% Modulo que implementa um servidor para o jogo "Vaga Vermelha"
 
 start (Port) ->
     %Room = spawn( fun() -> room( [] ,#{}) end),
-    State = spawn( fun() -> state:start()), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
-    Login = spawn( fun() -> login_manager:start()),
+    PidState = spawn ( fun() -> state:start() end), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
+    register(state, PidState),
+    PidLogin = spawn( fun() -> login_manager:start() end), % Criar processo que se encarrega de guardar os logins e validar passwords
     %spawn( fun() -> start() end),
+    register(login_manager, PidLogin ),
     {ok, LSock} = gen_tcp:listen(Port, [binary, {packet, line}]),
-    acceptor(LSock, Room).
+    acceptor(LSock).
 
 
-acceptor ( LSock, Room)->
+acceptor ( LSock )->
     %io:format("acceptor ~n"),
     {ok, Sock} = gen_tcp:accept(LSock),
-    spawn( fun() -> acceptor( LSock, Room) end), % Geramos outro aceptor para permitir que outros clientes se possam conectar ao servidor
-    authenticator(Sock,Room).
+    spawn( fun() -> acceptor( LSock ) end), % Geramos outro aceptor para permitir que outros clientes se possam conectar ao servidor
+    authenticator(Sock).
 
-authenticator(Sock,Room) ->
-    %io:format("authenticator~n"),
+authenticator(Sock) ->
+    io:format("authenticator~n"),
     receive
         {tcp, _ , Data}->
             StrData = binary:bin_to_list(Data),
@@ -31,18 +31,18 @@ authenticator(Sock,Room) ->
             case StrData of
 
                 "*login " ++ Dados ->
-                    %io:format("Entrei no login ~n"),
+                    io:format("Entrei no login ~n"),
                     St = string:tokens(Dados, " "),
                     [U | P] = St,
                     case login(U,P) of
                         ok ->
-                            gen_tcp:send(Sock, <<"Login com sucesso\n">>),
-                            Room ! {enter, self()}, % Entra na sala
-                            gen_tcp:send(Sock, <<"Entrou na sala de chat\n">>),
-                            user(Sock, Room);
+                            gen_tcp:send(Sock, <<"Login sucessful\n">>),
+                            state ! {ready, self()}, % Avisa o processo state que está pronto
+                            gen_tcp:send(Sock, <<"Waiting for the server\n">>),
+                            user(Sock);
                         invalid ->
-                            gen_tcp:send(Sock,<<"Login inválido\n">>),
-                            authenticator(Sock, Room) % Volta a tentar autenticar-se
+                            gen_tcp:send(Sock,<<"Login Error\n">>),
+                            authenticator(Sock) % Volta a tentar autenticar-se
                     end
                 ;
                 "*create_account " ++ Dados ->
@@ -52,59 +52,42 @@ authenticator(Sock,Room) ->
                     case create_account(U,P) of
                         ok ->
                             gen_tcp:send(Sock, <<"ok_create_account\n">>),
-                            Room ! {enter, self(),U}, % Ao entrar digo o meu username
-                            user(Sock, Room);
+                            % state ! {ready, self()}, % Avisa o processo state que está pronto
+                            user(Sock);
                         _ ->
                             gen_tcp:send(Sock,<<"invalid username or password\n">>),
-                            authenticator(Sock,Room)
+                            authenticator(Sock)
                     end
                 ;
                 _ ->
-                    gen_tcp:send(Sock,<<"Nao fez match com nada ~n">>),
+                    gen_tcp:send(Sock,<<"No match for that option ~n">>),
                     io:format("dados ~p~n",[Data]),
-                    authenticator(Sock, Room)
+                    authenticator(Sock)
             end
     end
 .
 
 
-room(Pids, UsernameMap) ->
-    receive
-        {enter, Pid, User} ->
-            io:format("User ~p entered ~n",[User]),
-            room([Pid | Pids], maps:put(Pid, User, UsernameMap));
-        {line, Data, PidSender} -> % Recebemos Pid do Sender, traduzimos para username
-            case maps:find (PidSender,UsernameMap) of
-                error -> % Se há erro
-                    PidSender ! error,
-                    room (Pids, UsernameMap)
-                ;
-                {ok, Username} -> % Se há username registado com esse pid como value...
-                    io:format("received ~p ~n", [Data]),
-                    [Pid ! {line, Data, Username}  || Pid <- Pids, Pid /= PidSender], % Pid != PidSender
-                    room(Pids, UsernameMap)
-            end
-        ;
-        {leave, Pid} ->
-            io:format("user left ~n",[]),
-            room(Pids -- [Pid], UsernameMap)
+
+
+user(Sock) ->
+    state ! {ready, self()},
+    gen_tcp:send(Sock, <<"Waiting for the server\n">>),
+    receive % Bloqueia à espera da resposta do servidor
+        {go, GameManager, state} ->
+            userOnGame(Sock, GameManager) % Entra em modo "game"
     end.
 
-
-
-%% line Data vem da room, é para ser enviado para o cliente
-%% tcp Data vem do cliente, tem de ser enviado para Room
-user(Sock, Room) ->
+userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager
     receive
-        {line, Data, User} -> %Acrescentamos prefixo de User à Mensagem
-            Aux = User ++ " said: " ++ Data
-            gen_tcp:send(Sock, Aux),
-            user(Sock, Room);
+        {line, Data} -> % Recebemos alguma coisa do processo GameManager
+            gen_tcp:send(Sock, Data),
+            userOnGame(Sock, GameManager);
         {tcp, _, Data} ->
-            Room ! {line, Data, self()},
-            user(Sock, Room);
+            GameManager ! {line, Data, self()},
+            userOnGame(Sock, GameManager);
         {tcp_closed, _} ->
-            Room ! {leave, self()};
+            GameManager ! {leave, self()};
         {tcp_error, _} ->
-            Room ! {leave, self()}
+            GameManager ! {leave, self()}
     end.

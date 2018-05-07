@@ -1,9 +1,6 @@
 -module (login_manager).
 -export( [start/0, create_account/2, close_account/2, login/2, logout/1, online/0]).
 
-
-% Paradigma de Actores - usar diversos micro processos para encapsular o estado da nossa aplicação
-
 % Map é um mapa de username -> {password, online} sendo true se está online ou false caso contrário
 
 
