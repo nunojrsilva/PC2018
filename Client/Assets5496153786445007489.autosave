@@ -21,7 +21,7 @@ class Assets {
       int( this.green.height * this.greenSize )
     );
 
-    this.player = loadImage("./Assets/psa.png");
+    this.player = loadImage("./Assets/cell.png");
     this.player.resize( int(this.player.width * this.playerSize), int(this.player.height * this.playerSize));
   }
 }
