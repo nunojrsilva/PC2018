@@ -1,0 +1,22 @@
+import controlP5.*;
+ControlP5 controlP5;
+
+Creature creature;
+
+void setup() {
+       size(500, 500);
+       controlP5 = new ControlP5(this);
+       stroke(255);
+       creature = new Creature(1,1,1,1.0,1.0);
+     }
+
+     void draw() {
+       background(255);
+       line(150, 25, mouseX, mouseY);
+       creature.update(0);
+       creature.draw();
+     }
+
+     void mousePressed() {
+       background(192, 64, 0);
+     }

@@ -1,0 +1,75 @@
+
+
+class Creature {
+  
+  /**
+   * Classwise Atributes
+   */
+  PImage green;
+  // PImage red = loadImage("Assets/red.png");
+  int GREEN = 0;
+  int RED = 1;
+  int sizeX = 20;
+  int sizeY = 20;
+  float speed = 1;
+  float noiseX = 0.0;
+  float noiseY = 0.0;
+
+  /**
+   * Instance Attributes
+   */
+  int type;
+  int posX, posY;
+  float velX, velY;
+
+  /**
+   * 
+   * 
+   */
+  Creature ( int posX, int posY, int type, float velX, float velY ) {
+    this.posX = posX;
+    this.posY = posY;
+    this.type = type;
+    this.velX = velX;
+    this.velY = velY;
+    this.green = loadImage("./Assets/greenThings.png");
+    this.green.resize(this.sizeX, this.sizeY);
+    noiseSeed(10);
+  }
+
+  int    getType() { return this.type; }
+  int    getPosX() { return this.posX; }
+  int    getPosY() { return this.posY; }
+  float  getSpeed() { return this.speed;}
+
+  void update( int player ) {
+    // Calc direction 
+    // Calc position
+    this.noiseX += 0.01;
+    this.noiseY += 0.02;
+    this.posX +=  noise(this.noiseX)* 2;
+    this.posY +=  noise(this.noiseY)* 2;
+    if(this.noiseX >= 1){
+      this.noiseX = this.noiseY = 0.0;
+    }
+  }
+
+  void update( int posX, int posY, int type, float velX, float velY) {
+    this.posX = posX;
+    this.posY = posY;
+    this.type = type;
+    this.velX = velX;
+    this.velY = velY;
+  }
+
+  void draw() {
+    // Funcion responsible for drawing the creatures
+    if( type == GREEN ) {
+      // draw at posX posY with sizeX sizeY
+    } else { // type == RED
+      // draw at posX posY with sizeX sizeY
+    }
+    image( this.green, this.posX, this.posY);
+  }
+
+}
