@@ -17,7 +17,7 @@ start (Port) ->
 
 
 acceptor ( LSock )->
-    %io:format("acceptor ~n"),
+    io:format("acceptor ~n"),
     {ok, Sock} = gen_tcp:accept(LSock),
     spawn( fun() -> acceptor( LSock ) end), % Geramos outro aceptor para permitir que outros clientes se possam conectar ao servidor
     authenticator(Sock).
@@ -27,7 +27,7 @@ authenticator(Sock) ->
     receive
         {tcp, _ , Data}->
             StrData = binary:bin_to_list(Data),
-            %io:format("Recebi coisas~n"),
+            io:format("Recebi coisas~n"),
             case StrData of
 
                 "*login " ++ Dados ->
@@ -39,7 +39,7 @@ authenticator(Sock) ->
                             gen_tcp:send(Sock, <<"Login sucessful\n">>),
                             state ! {ready, self()}, % Avisa o processo state que está pronto
                             gen_tcp:send(Sock, <<"Waiting for the server\n">>),
-                            user(Sock);
+                            user(Sock, U);
                         invalid ->
                             gen_tcp:send(Sock,<<"Login Error\n">>),
                             authenticator(Sock) % Volta a tentar autenticar-se
@@ -52,8 +52,7 @@ authenticator(Sock) ->
                     case create_account(U,P) of
                         ok ->
                             gen_tcp:send(Sock, <<"ok_create_account\n">>),
-                            % state ! {ready, self()}, % Avisa o processo state que está pronto
-                            user(Sock);
+                            user(Sock, U);
                         _ ->
                             gen_tcp:send(Sock,<<"invalid username or password\n">>),
                             authenticator(Sock)
@@ -70,8 +69,8 @@ authenticator(Sock) ->
 
 
 
-user(Sock) ->
-    state ! {ready, self()},
+user(Sock, Username) ->
+    state ! {ready, Username, self()},
     gen_tcp:send(Sock, <<"Waiting for the server\n">>),
     receive % Bloqueia à espera da resposta do servidor
         {go, GameManager, state} ->
