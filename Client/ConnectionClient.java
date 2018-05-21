@@ -23,4 +23,25 @@ public class ConnectionClient {
     writeSocket.close();
   }
 
+  public void login(String user, String password){
+    try{
+      PrintWriter out = new PrintWriter(writeSocket.getOutputStream());
+      out.println("*login " + user + " " + pass);
+      out.flush();
+    }catch (Exception e) {
+      e.printStackTrace();
+      System.exit(0);
+    }
+  }
+}
+
+class ReadSocket extends Thread{
+  BufferedReader in;
+  ConnectionClient inSocket;
+
+  ReadSocket(){
+    inSocket.connect();
+    this.in = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
+
+  }
 }

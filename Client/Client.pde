@@ -8,8 +8,8 @@ ControlP5 cp5;
 
 String username = "";
 String password = "";
-Player player1;
-ConnectionClient s;
+ConnectionClient outSocket;
+Thread inSocket;
 String server_connection_status = "";
 
 final int fields_height = 40;
@@ -28,26 +28,19 @@ final int login_screen = 0;
 final int game_screen = 1;
 final int result_screen = 2;
 
-int state = 0;
+int gameState = 0;
 
-
-Creature creature;
-Player player;
+State playState;
 Assets assets;
 
 void setup() {
-//   fullScreen();
-//   controlP5 = new ControlP5(this);
-//   stroke(255);
+//
 //   creature = new Creature(height/2, width/2, 1, 1.0, 1.0);
 //   player = new Player(0, 0, -HALF_PI/2, 1.0);
-//   assets = new Assets();
+  assets = new Assets();
 // }
 
 // void draw() {
-//   background(0);
-//   // line(150, 25, mouseX, mouseY);
-
 //   player.update();
 //   player.draw( assets );
 
@@ -57,22 +50,14 @@ void setup() {
 
 // }
 
-// void mousePressed() {
-//   background(192, 64, 0);
-// }
-
   fullScreen();
   pixelDensity(displayDensity());
 
   cp5 = new ControlP5(this);
   PFont font = createFont("Arial", 12);
 
-  s = new ConnectionClient();
-  s.connect();
-  player1 = new Player();
-  // while ( !s.connect() ){
-  //   sleep(1000);
-  // }
+  outSocket = new ConnectionClient();
+  outSocket.connect();
 
   username_textfield =  cp5.addTextfield( "Username" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
@@ -86,18 +71,18 @@ void setup() {
                     .setSize( button_width, fields_height )
                     .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
                        public void controlEvent(CallbackEvent theEvent) {
-                         user = cp5.get(Textfield.class,"Username").getText();
-                         pass = cp5.get(Textfield.class,"Password").getText();
-                         c1.login(user,pass);
+                         username = cp5.get(Textfield.class,"Username").getText();
+                         password = cp5.get(Textfield.class,"Password").getText();
+                         outSocket.login(username,password);
 
                          try{
-                           String s = in.readLine();
-                           println(s);
-                           if(s.equals("ok_login")){
+                           String outSocket = in.readLine();
+                           println(outSocket);
+                           if(outSocket.equals("ok_login")){
                              m = new Message(in,estado);
                              m.start();
                              cp5.hide();
-                             state = game_screen;
+                             gameState = game_screen;
                            }else{
                              login_fail=true;
                            }
@@ -109,7 +94,6 @@ void setup() {
   password_textfield = cp5.addTextfield( "Password" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 + spacing_size )
                            .setSize( textfield_width, fields_height)
-                           .setFocus(true)
                            .setPasswordMode(true)
                            .setColorActive(color(255,0,0))
                            .setFont(font)
@@ -125,10 +109,9 @@ void setup() {
                                ;
 }
 
-public
 
 void draw() {
-  switch(state){
+  switch(gameState){
     case login_screen:
 
       break;
