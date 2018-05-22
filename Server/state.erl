@@ -49,7 +49,7 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                     end
                 end
             ;
-        {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score}
+        {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
             Result
     end
 .
@@ -58,14 +58,27 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
 
 
 
-
+% Parametros a guardar por user : Posicao, Direcao, Aceleracao,
+% É aqui que comunicamos com o clientes
 
 gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
-    io:format("Hello").
-    % {Username1, UserProcess1} = PlayerOne,
-    % {Username2, UserProcess2} = PlayerTwo,
+    io:format("Hello"),
+    {Username1, UserProcess1} = PlayerOne,
+    {Username2, UserProcess2} = PlayerTwo,
     % GameStat = maps:new(),
     % {Username1, X, Y, LP, RP, FP} =
+    Refresher = spawn(fun() -> refresh(UserProcess1, UserProcess2, abc) end).
     %Criar criaturas
     %Armazenar posiçoes de todos eles
     %Processos que carregam propulsores
+
+
+
+% refresh( Process1, Process2, GameInfo) ->
+%     timer:send_after(10, refresh, self()),
+%     receive
+%         refresh ->
+%             io:format("Sending data to the client"),
+%             Process1 ! Process2 ! {line, GameInfo}
+%     end
+%     .

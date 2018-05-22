@@ -36,12 +36,12 @@ authenticator(Sock) ->
                     [U | P] = St,
                     case login(U,P) of
                         ok ->
-                            gen_tcp:send(Sock, <<"Login sucessful\n">>),
+                            gen_tcp:send(Sock, <<"login sucessful\n">>),
                             state ! {ready, self()}, % Avisa o processo state que está pronto
-                            gen_tcp:send(Sock, <<"Waiting for the server\n">>),
+                            %gen_tcp:send(Sock, <<"Waiting for the server\n">>),
                             user(Sock, U);
                         invalid ->
-                            gen_tcp:send(Sock,<<"Login Error\n">>),
+                            gen_tcp:send(Sock,<<"login error\n">>),
                             authenticator(Sock) % Volta a tentar autenticar-se
                     end
                 ;
@@ -51,10 +51,10 @@ authenticator(Sock) ->
                     [U | P] = St,
                     case create_account(U,P) of
                         ok ->
-                            gen_tcp:send(Sock, <<"ok_create_account\n">>),
+                            gen_tcp:send(Sock, <<"create_account sucessful\n">>),
                             user(Sock, U);
                         _ ->
-                            gen_tcp:send(Sock,<<"invalid username or password\n">>),
+                            gen_tcp:send(Sock,<<"create_account error\n">>),
                             authenticator(Sock)
                     end
                 ;
@@ -80,9 +80,10 @@ user(Sock, Username) ->
 userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager
     receive
         {line, Data} -> % Recebemos alguma coisa do processo GameManager
+            io:format("Sending ~p to the client",[Data]),
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, GameManager);
-        {tcp, _, Data} ->
+        {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
             GameManager ! {line, Data, self()},
             userOnGame(Sock, GameManager);
         {tcp_closed, _} ->
