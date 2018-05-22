@@ -3,27 +3,31 @@ import java.io.*;
 import java.util.*;
 
 public class ConnectionClient {
-  private Socket socket;
+   Socket socket;
 
   public ConnectionClient(){
     this.socket = null;
   }
 
-  public boolean connect(){
+  public Socket getSocket (){
+    return this.socket;
+  }
+
+  public Socket connect(){
       try{
         socket = new Socket("localhost", 12345);
       }catch(Exception e){
         e.printStackTrace();
-        return false;
+        return null;
       }
-      return true;
+      return socket;
   }
 
   public void disconnect() throws IOException{
     socket.close();
   }
 
-  public void login(String user, String password){
+  public void login(String user, String pass){
     try{
       PrintWriter out = new PrintWriter(socket.getOutputStream());
       out.println("*login " + user + " " + pass);
@@ -44,10 +48,12 @@ class ReadSocket extends Thread{
   ConnectionClient inSocket;
   // boolean *start;
 
-  public ReadSocket(Socket socket){
-    inSocket.connect();
+  public ReadSocket(){
+    inSocket = new ConnectionClient();
+    // inSocket.getSocket().connect();
     try {
-      this.in = new BufferedReader(new InputStreamReader(inSocket.getInputStream()));
+      Socket aux = inSocket.getSocket();
+      this.in = new BufferedReader(new InputStreamReader(aux.getInputStream()));
     }catch(IOException e){
       e.printStackTrace();
     }

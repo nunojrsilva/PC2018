@@ -62,12 +62,12 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
 % É aqui que comunicamos com o clientes
 
 gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
-    io:format("Hello"),
-    {Username1, UserProcess1} = PlayerOne,
-    {Username2, UserProcess2} = PlayerTwo,
-    % GameStat = maps:new(),
-    % {Username1, X, Y, LP, RP, FP} =
-    Refresher = spawn(fun() -> refresh(UserProcess1, UserProcess2, abc) end).
+    io:format("Hello").
+    % {Username1, UserProcess1} = PlayerOne,
+    % {Username2, UserProcess2} = PlayerTwo,
+    % % GameStat = maps:new(),
+    % % {Username1, X, Y, LP, RP, FP} =
+    % Refresher = spawn(fun() -> refresh(UserProcess1, UserProcess2, abc) end).
     %Criar criaturas
     %Armazenar posiçoes de todos eles
     %Processos que carregam propulsores

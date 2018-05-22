@@ -30,7 +30,7 @@ final int result_screen = 2;
 
 int gameState = 0;
 
-State playState = null;
+// State playState = null;
 Assets assets;
 
 void setup() {
@@ -65,9 +65,9 @@ void setup() {
                          password = cp5.get(Textfield.class,"Password").getText();
                          outSocket.login(username,password);
                          try{
-                            if(!playState){
-                              server_connection_label.
-                            }
+                            // if(!playState){
+                            //   // server_connection_label.
+                            // }
                             cp5.hide();
                             gameState = game_screen;
                          }catch(Exception e){e.printStackTrace();}
