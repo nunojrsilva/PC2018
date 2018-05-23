@@ -4,18 +4,19 @@ class Assets {
   PImage background;
 
   PImage green;
-  int greenSize = 50;
+  int greenSize = 30;
 
   PImage red;
-  int redSize = 40;
+  int redSize = 30;
 
   PImage player0;
   PImage player1;
   //float playerSize = 0.5;
-  int playerSize = 100;
+  int playerSize = 70;
 
   Assets() {
     background = loadImage("./Assets/brickWall.png");
+    background.resize(width, height);
 
     this.green = loadImage("./Assets/pepperoni.png");
     this.green.resize(this.greenSize, this.greenSize);

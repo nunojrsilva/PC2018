@@ -8,7 +8,7 @@ class Creature {
   PVector position;
   PVector direction;
   PVector desiredDirection;
-  int type; // 0 for green 1 for red
+  int     type; // 0 for green 1 for red
 
   Creature( float posX, float posY, int type ) {
     this.position = new PVector(posX, posY);

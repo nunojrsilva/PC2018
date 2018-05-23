@@ -2,52 +2,76 @@
 
 class PlayerAvatar {
   /****   CONSTANTS   ****/
-  float frontAcceleration = 1;   // Quantidade aumentada à velocidade com propulsão
-  float angularVelocity   = 0.1; // Quantidade alterada ao angulo
+  float frontAcceleration = 2.25;   // Quantidade aumentada à velocidade com propulsão
+  float angularVelocity   = 0.55; // Quantidade alterada ao angulo
   float maxEnergy         = 20;  // Energy Maxima que pode ter
-  float energyWaste       = 1;   // Quantidade de energia gasta com propulsão
-  float energyGain        = 0.7; // Quantidade de energia gasta quando não hºa populsão
-  float drag              = 0.5;  // Quantidade removida à velocidade com o tempo
+  float energyWaste       = 2.0;   // Quantidade de energia gasta com propulsão
+  float energyGain        = 0.2; // Quantidade de energia gasta quando não hºa populsão
+  float drag              = 0.1;  // Quantidade removida à velocidade com o tempo
 
   /***   ATTRIBUTES   ***/
-  PVector position;     // Vetor de pusição
+  PVector position;     // Vetor de posição
   float   direction;    // Ângulo para onde se encontra virado
   float   velocity;     // Escalar
   float   energy;       // Energia atual
+  int     type;         // 0 - Jogador. 1 - Oponente
 
   /*** INFORMATION FOR UPDATE ***/
-  PVector positionOffset;
-  float energyToAdd;
-  boolean usedEnergy = false;
+  PVector positionOffset = new PVector(0,0);
+  float   energyToAdd = 0;
 
-  PlayerAvatar( int posX, int posY ) {
+  PlayerAvatar( float posX, float posY, int type) {
+    this.type = type;
     this.position  = new PVector(posX, posY);
     this.direction = 0;
     this.velocity  = 0;
     this.energy    = this.maxEnergy;
+  }
+  
+  void keyTyped() {
+    print(key);
+    if( key == 'w' ) {
+      this.accelerateForward();
+    } else if( key == 'd') {
+      this.turnRight();
+    } else if( key == 'a') {
+      this.turnLeft();
+    }
+  }
+  
+  void processKeys(JSONObject keys ) {
+    // key is a Processing variable
+    if( this.energy > this.energyWaste ) {
+      if( keys.getBoolean("w") ) {
+        this.accelerateForward();
+      }
+      if( keys.getBoolean("d") ) {  
+         this.turnRight();
+      }
+      if( keys.getBoolean("a") ) {
+         this.turnLeft();
+      }
+    }
   }
 
   void accelerateForward() {
     if( this.energy > this.energyWaste ){
       this.velocity  += this.frontAcceleration;
       this.energy    -= this.energyWaste;
-      this.usedEnergy = true;
     }
   }
 
   void turnRight() {
     if( this.energy > this.energyWaste ){
-      this.direction -= this.angularVelocity;
+      this.direction += this.angularVelocity;
       this.energy    -= this.energyWaste;
-      this.usedEnergy = true;
     }
   }
 
   void turnLeft() {
     if( this.energy > this.energyWaste ){
-      this.direction  += this.angularVelocity;
+      this.direction  -= this.angularVelocity;
       this.energy     -= this.energyWaste;
-      this.usedEnergy = true;
     }
   }
 
@@ -60,13 +84,21 @@ class PlayerAvatar {
   }
 
   void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy ) {
-    // Repel from other player
-    distance = otherPlayer.position.dist( this.position );
+    
+    // Repel from other player 
+    float distance = otherPlayer.position.dist( this.position );
     // direction is vector pointing AWAY from the player
-    direction = new PVector( this.position.x, this.position.y);
+    PVector direction = new PVector( this.position.x, this.position.y);
     direction.sub( otherPlayer.position );
-    this.positionOffset = direction.mult(distance);
-
+    direction.normalize();
+    this.positionOffset = direction.mult( 1/pow(distance,0.3) );
+    
+    PVector directionVector = PVector.fromAngle(this.direction);
+    directionVector.mult( this.velocity );
+    this.positionOffset.add( directionVector );
+    
+    
+      
     this.energyToAdd = extraEnergy;
   }
 
@@ -76,22 +108,36 @@ class PlayerAvatar {
   */
   void update( ) {
     // Changes from the prepare update
-    this.position.add( this.poisitionOffset );
+    this.position.add( this.positionOffset );
 
     // update position
-    directionVector = new PVector( cos(this.direction), sin(this.direction) );
-    directionVector.mag( this.velocity );
-    this.position.add( directionVector );
+    //PVector directionVector = new PVector( cos(this.direction), sin(this.direction) );
+    //directionVector.mult( this.velocity );
+    //this.position.add( directionVector );
 
     // Drag
-    this.velocity -= this.drag;
-
+    if(this.velocity > 0)
+      this.velocity -= this.drag;
+    else this.velocity = 0;
+  
+     
     this.energy += this.energyToAdd;
-
-    if(!usedEnergy)
-      this.energy += this.energyGain;
-
-    this.usedEnergy = false;
+    if(this.energy > this.maxEnergy) this.energy = this.maxEnergy;
+    this.energy += this.energyGain;
+    if( this.energy > this.maxEnergy ) this.energy = this.maxEnergy;
+  }
+  
+  void drawEnergy () {
+     // draw outline box
+     fill(255);
+     strokeWeight(1);
+     stroke(0,0,0);
+     rect(10, 10, this.maxEnergy * 10, 30);
+     
+     // draw energy box
+     noStroke();
+     fill( 255, 0, 0 );
+     rect(12, 12, abs(this.energy * 10 - 4), 26);
   }
 
   void draw( Assets assets ) {
@@ -100,9 +146,15 @@ class PlayerAvatar {
     // Vai para a posição do jogador
     translate(this.position.x, this.position.y);
     // Roda para a direção desejada
-    rotate(-this.direction);
+    rotate(this.direction);
     // Desenha o Avatar
-    image( assets.player, 0, 0);
+    noStroke();
+    fill(255);
+    triangle(assets.playerSize/2 +20, 0,
+             10, -20,
+             10, 20);
+    if(this.type == 0) image( assets.player0, -assets.playerSize/2, -assets.playerSize/2);
+    else image(assets.player1,  -assets.playerSize/2, -assets.playerSize/2);
     popMatrix();
   }
 

@@ -1,6 +1,9 @@
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.Condition;
 
 public class Reader extends Thread {
    Socket socket;

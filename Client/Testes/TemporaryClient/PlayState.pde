@@ -36,7 +36,11 @@ class PlayState {
     this.keys.setBoolean("a", false);
     this.keys.setBoolean("d", false);
   }
-
+  
+  void keyTyped() {
+    this.thisPlayer.keyTyped();
+  }
+  
   void keyReleased() {
     String k = ""+key;
      if( !this.keys.isNull(k) ) {
@@ -51,7 +55,8 @@ class PlayState {
   }
 
   void prepareUpdate() {
-    this.thisPlayer.processKeys( this.keys );
+    // this.thisPlayer.processKeys( this.keys );
+    
     this.thisPlayer.prepareUpdate( this.adversary, 0 );
     this.adversary.prepareUpdate( this.thisPlayer, 0 );
     
