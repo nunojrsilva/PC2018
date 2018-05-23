@@ -9,8 +9,9 @@ ControlP5 cp5;
 String username = "";
 String password = "";
 Socket socket;
-PrintWriter writeSocket;
-Thread readSocket;
+Writer writeSocket;
+Reader readSocket;
+PlayState state;
 String server_connection_status = "";
 
 final int fields_height = 40;
@@ -38,15 +39,21 @@ void setup() {
 
   // assets = new Assets();
 
-
   fullScreen();
   pixelDensity( displayDensity() );
 
   cp5 = new ControlP5(this);
   PFont font = createFont("Arial", 12);
 
-  connect();
-  readSocket = new ConnectionClient(socket, &gameState);
+  try{
+    socket = new Socket("localhost", 12345);
+  }catch(Exception e){
+    e.printStackTrace();
+  }
+
+  writeSocket = new Writer(socket);
+  writeSocket.connect();
+  readSocket = new Reader(socket, state);
   readSocket.start();
 
   username_textfield =  cp5.addTextfield( "Username" )
@@ -91,15 +98,6 @@ void setup() {
                                .setFont(font)
                                // setFont(createFont("Calibri",20))
                                ;
-}
-
-void connect(){
-  try{
-    socket = new Socket("localhost", 12345);
-    writeSocket = new PrintWriter(socket.getOutputStream());
-  }catch(Exception e){
-    e.printStackTrace();
-  }
 }
 
 void draw() {
