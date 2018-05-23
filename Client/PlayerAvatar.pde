@@ -29,7 +29,7 @@ class PlayerAvatar {
 
   void accelerateForward() {
     if( this.energy > this.energyWaste ){
-      this.velocity  += this.fronAcceleration;
+      this.velocity  += this.frontAcceleration;
       this.energy    -= this.energyWaste;
       this.usedEnergy = true;
     }
@@ -60,7 +60,7 @@ class PlayerAvatar {
   }
 
   void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy ) {
-    // Repel from other player 
+    // Repel from other player
     distance = otherPlayer.position.dist( this.position );
     // direction is vector pointing AWAY from the player
     direction = new PVector( this.position.x, this.position.y);
