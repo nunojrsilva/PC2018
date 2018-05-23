@@ -32,14 +32,15 @@ final int result_screen = 2;
 
 int gameState = 0;
 
-// State playState = null;
-// Assets assets;
+Assets assets;
 
 void setup() {
 
-  // assets = new Assets();
+  assets = new Assets();
 
-  fullScreen();
+  // fullScreen();
+  size(800,800);
+  frameRate(40);
   pixelDensity( displayDensity() );
 
   cp5 = new ControlP5(this);

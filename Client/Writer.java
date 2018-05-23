@@ -31,15 +31,6 @@ public class Writer {
     }
   }
 
-  public void connect(){
-    try {
-      // this.socket = new Socket("localhost", 12345);
-      this.in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-    }catch(IOException e){
-      e.printStackTrace();
-    }
-  }
-
   public void disconnect() throws IOException{
     socket.close();
   }
@@ -55,35 +46,8 @@ public class Writer {
     }
   }
 
-  public boolean checkStatus(){
-    if (this.in != null){
-      return true;
-    }else{
-      return false;
-    }
-  }
-
 
   public void createAccount(String user, String password){
-
-  }
-  public void run(){
-    try{
-      this.connect();
-      while(true){
-        this.message = in.readLine();
-        if( this.message.equals("login successful") ){
-          this.gameState = 1;
-          System.out.println("login successful\n");
-        }
-        if( this.message.equals("login error") ){
-          System.out.println("login error");
-        }
-
-      }
-    }catch (IOException e){
-      e.printStackTrace();
-    }
 
   }
 }

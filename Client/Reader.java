@@ -8,17 +8,17 @@ import java.util.concurrent.locks.Condition;
 public class Reader extends Thread {
    Socket socket;
    BufferedReader in;
-   PlayState state;
+   Client.PlayState state;
    String message;
 
-  private Writer(){
+  private Reader(){
     this.socket = null;
     this.in = null;
     this.state = null;
     this.message = "";
   }
 
-  public Writer(Socket socket, PlayState state){
+  public Reader(Socket socket, Client.PlayState state){
     this.socket = socket;
     this.in = null;
     this.state = state;
@@ -56,11 +56,14 @@ public class Reader extends Thread {
       while(true){
         this.message = in.readLine();
         if( this.message.equals("login successful") ){
-          this.gameState = 1;
           System.out.println("login successful\n");
         }
         if( this.message.equals("login error") ){
           System.out.println("login error");
+        }
+        if( this.message.equals(".........") ){
+          state  = new PlayState( assets );
+
         }
 
       }
