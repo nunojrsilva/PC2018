@@ -1,50 +1,57 @@
 
 
 class Creature {
-  // Classwise Atributes
-  PImage green;
-  // PImage red = loadImage("Assets/red.png");
-  int GREEN = 0;
-  int RED = 1;
-  int sizeX = 20;
-  int sizeY = 20;
-  float speed = 1;
-  float noiseX = 0.0;
-  float noiseY = 0.0;
+  /***   CONSTANTS   ***/
+  float velocity = 1;
 
-  // Instance Attributes
-  int type;
+  /***   ATTRIBUTES   ***/
   PVector position;
-  PVector velocity;
+  PVector direction;
+  PVector desiredDirection;
+  int     type; // 0 for green 1 for red
 
-  Creature ( int posX, int posY, int type, float velX, float velY ) {
+  Creature( float posX, float posY, int type ) {
     this.position = new PVector(posX, posY);
-    this.velocity = new PVector(velX, velY);
+    this.direction = new PVector(0,0);
+    this.desiredDirection = new PVector(0,0);
     this.type = type;
   }
 
-  int    getType() { return this.type; }
-  float  getSpeed() { return this.speed;}
-
-  void update( ) {
-    // Calc direction 
-    // Calc position
+  void calcDirection() {
+    this.direction.set( (this.direction.x + this.desiredDirection.x)/2, (this.direction.y + this.desiredDirection.y)/2);
+    this.direction.normalize();
+    this.direction.mult(this.velocity);
   }
 
-  void update( int posX, int posY, int type, float velX, float velY) {
-    this.position = new PVector(posX, posY);
-    this.velocity = new PVector(velX, velY);
-    this.type = type;
-  }
+  void calcDesiredDirection( PlayerAvatar p1, PlayerAvatar p2) {
+    // Get distances  
+    float d1 = this.position.dist(p1.position);
+    float d2 = this.position.dist(p2.position);
 
-  void draw( Assets assets ) {
-    // Funcion responsible for drawing the creatures
-    if( type == GREEN ) {
-      // draw at posX posY with sizeX sizeY
-    } else { // type == RED
-      // draw at posX posY with sizeX sizeY
+    // compare and chose the closest
+    if( d1 < d2 ) {
+      this.desiredDirection = new PVector(p1.position.x, p1.position.y);
+    } else {
+      this.desiredDirection = new PVector(p2.position.x, p2.position.y);
     }
-    image( assets.green , this.position.x, this.position.y );
+
+    // set desired direction pointing to the closest
+    this.desiredDirection.sub(this.position);
+    this.desiredDirection.normalize();
+  }
+
+  void prepareUpdate( PlayerAvatar p1, PlayerAvatar p2 ) {
+    this.calcDesiredDirection(p1,p2);
+    this.calcDirection();
+  }
+
+  void update() {
+    this.position.add(this.direction);
+  }
+
+  void draw(Assets assets) {
+    if(this.type == 0) image(assets.green, this.position.x, this.position.y);
+    else image(assets.red, this.position.x, this.position.y);
   }
 
 }
