@@ -18,14 +18,12 @@ void setup() {
 }
 
 void draw() {
-  background(assets.background);
-  int stroke = 50;
-  
-  translate(width/2 - (arenaWidth/2) -stroke/2, height/2 - (arenaHeight/2) -stroke/2);
+  background(255);
+  translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
+  image(assets.background,0,0);
   noFill();
   stroke(0);
-  strokeWeight(stroke);
-  rect(0-stroke/2, 0-stroke/2, arenaWidth + stroke/2, arenaHeight + stroke/2); 
+  rect(0, 0, arenaWidth, arenaHeight); 
   
   state.prepareUpdate();
   state.update();

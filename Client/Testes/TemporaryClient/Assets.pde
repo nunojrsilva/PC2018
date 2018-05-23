@@ -16,7 +16,7 @@ class Assets {
 
   Assets() {
     background = loadImage("./Assets/brickWall.png");
-    background.resize(width, height);
+    background.resize(arenaWidth, arenaHeight);
 
     this.green = loadImage("./Assets/pepperoni.png");
     this.green.resize(this.greenSize, this.greenSize);
