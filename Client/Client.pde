@@ -8,8 +8,9 @@ ControlP5 cp5;
 
 String username = "";
 String password = "";
-ConnectionClient outSocket;
-Thread inSocket;
+Socket socket;
+PrintWriter writeSocket;
+Thread readSocket;
 String server_connection_status = "";
 
 final int fields_height = 40;
@@ -31,23 +32,22 @@ final int result_screen = 2;
 int gameState = 0;
 
 // State playState = null;
-Assets assets;
+// Assets assets;
 
 void setup() {
 
-  assets = new Assets();
+  // assets = new Assets();
 
 
   fullScreen();
-  pixelDensity(displayDensity());
+  pixelDensity( displayDensity() );
 
   cp5 = new ControlP5(this);
   PFont font = createFont("Arial", 12);
 
-  outSocket = new ConnectionClient();
-  outSocket.connect();
-  inSocket = new ReadSocket();
-  inSocket.start();
+  connect();
+  readSocket = new ConnectionClient(socket, &gameState);
+  readSocket.start();
 
   username_textfield =  cp5.addTextfield( "Username" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
@@ -63,7 +63,7 @@ void setup() {
                        public void controlEvent(CallbackEvent theEvent) {
                          username = cp5.get(Textfield.class,"Username").getText();
                          password = cp5.get(Textfield.class,"Password").getText();
-                         outSocket.login(username,password);
+                         writeSocket.login(username,password);
                          try{
                             // if(!playState){
                             //   // server_connection_label.
@@ -93,6 +93,14 @@ void setup() {
                                ;
 }
 
+void connect(){
+  try{
+    socket = new Socket("localhost", 12345);
+    writeSocket = new PrintWriter(socket.getOutputStream());
+  }catch(Exception e){
+    e.printStackTrace();
+  }
+}
 
 void draw() {
   switch(gameState){
