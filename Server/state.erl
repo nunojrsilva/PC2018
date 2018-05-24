@@ -59,7 +59,7 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
 gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     %io:fwrite("GameManager ativo entre ~p",[]),
     Creatures = 12,
-    Estado = {newPlayer(1), newPlayer(2),  {newCreature(r), newCreature(g)}, {1200,800}},
+    Estado = {newPlayer(1), newPlayer(2),  [newCreature(g), newCreature(g)], {1200,800}},
     io:fwrite("Estado: ~p", [Estado]).
 
 
@@ -132,7 +132,7 @@ updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
 
 
 updateCreatures(Creatures) ->
-    {}.
+    lists:map(updateCreature, Creatures).
 
 
 updateCreature(Creature, P1, P2) ->
