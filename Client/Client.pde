@@ -37,7 +37,7 @@ Assets assets;
 void setup() {
 
   assets = new Assets();
-
+  state = new PlayState(assets);
   // fullScreen();
   size(800,800);
   frameRate(40);
@@ -57,14 +57,14 @@ void setup() {
   readSocket = new Reader(socket, state);
   readSocket.start();
 
-  username_textfield =  cp5.addTextfield( "Username" )
+  cp5.addTextfield( "Username" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
                            .setSize( textfield_width, fields_height )
                            .setFocus(true)
                            .setColorActive(color(255,0,0))
                            .setFont(font)
                            ;
-  login_button = cp5.addButton( "Login" )
+  cp5.addButton( "Login" )
                     .setPosition( width/2 + spacing_size, height/2 - spacing_size - fields_height )
                     .setSize( button_width, fields_height )
                     .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
@@ -72,39 +72,35 @@ void setup() {
                         username = cp5.get(Textfield.class,"Username").getText();
                         password = cp5.get(Textfield.class,"Password").getText();
                         writeSocket.login(username,password);
-                        // readSocket.l.lock();
                         try{
 
-                          readSocket.start.await();
+                          // readSocket.start.await();
                             String m = readSocket.getMessage();
                             if( m.equals("login error") ){
                               server_connection_label.setText("Login Error. Try again");
                             }
-                            cp5.hide();
+                            // cp5.hide();
                             gameState = game_screen;
 
                         }catch(Exception e){
                           e.printStackTrace();
                         }
-                        // finally{
-                        //   readSocket.l.unlock();
-                        // }
 
                       }
                     })
                     ;
-  password_textfield = cp5.addTextfield( "Password" )
+  cp5.addTextfield( "Password" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 + spacing_size )
                            .setSize( textfield_width, fields_height)
                            .setPasswordMode(true)
                            .setColorActive(color(255,0,0))
                            .setFont(font)
                            ;
-  new_account_button = cp5.addButton( "New Account" )
+  cp5.addButton( "New Account" )
                           .setPosition( width/2 + spacing_size, height/2 + spacing_size )
                           .setSize( button_width, fields_height )
                           ;
-  server_connection_label = cp5.addTextlabel("Connecting to server")
+  cp5.addTextlabel("Connecting to server")
                                .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
                                // .setColor(100)
                                .setFont(font)
@@ -115,15 +111,25 @@ void setup() {
 
 void draw() {
   switch(gameState){
-    case login_screen:
-
-      break;
+    // case login_screen:
+    //
+    //   break;
     case game_screen:
-
+      cp5.getController("Username").hide();
+      cp5.getController("Login").hide();
+      cp5.getController("Password").hide();
+      cp5.getController("New Account").hide();
+      cp5.getController("Connecting to server").hide();
+      // cp5.getController("").hide();
+      // password_textfield.hide();
+      // login_button.hide();
+      // new_account_button.hide();
+      // server_connection_label.hide();
+      // state.draw();
       break;
-    case result_screen:
-
-      break;
+    // case result_screen:
+    //
+    //   break;
 
     default:
       break;
