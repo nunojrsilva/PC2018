@@ -29,7 +29,6 @@ class PlayerAvatar {
   }
   
   void keyTyped() {
-    print(key);
     if( key == 'w' ) {
       this.accelerateForward();
     } else if( key == 'd') {

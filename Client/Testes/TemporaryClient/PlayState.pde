@@ -6,25 +6,25 @@ class PlayState {
   PlayerAvatar thisPlayer;
   PlayerAvatar adversary;
   Creature[] greens;
-  Creature[] reds;
+  ArrayList<Creature> reds;
   // Creature reds;
   
   JSONObject keys;
 
   int thisPlayerPoints;
   int adversaryPoints;
+
+  int timeSlice = 0;
   
   PlayState (Assets assets) {
-    this.thisPlayer = new PlayerAvatar( random(100, width-100), random(100, height - 100), 0);
-    this.adversary  = new PlayerAvatar( random(100, width-100), random(100, height - 100), 1);
+    this.thisPlayer = new PlayerAvatar( random(100, arenaWidth-100), random(100, arenaHeight - 100), 0);
+    this.adversary  = new PlayerAvatar( random(100, arenaWidth-100), random(100, arenaHeight - 100), 1);
     
     this.greens = new Creature[2];
-    this.greens[0] = new Creature(random(100, width-100), random(100, height - 100), 0);
-    this.greens[1] = new Creature(random(100, width-100), random(100, height - 100), 0);
-    
-    this.reds = new Creature[2];
-    this.reds[0] = new Creature(random(100, width-100), random(100, height - 100), 1);
-    this.reds[1] = new Creature(random(100, width-100), random(100, height - 100), 1);
+    this.greens[0] = new Creature(random(100, arenaWidth-100), random(100, arenaHeight - 100), 0);
+    this.greens[1] = new Creature(random(100, arenaWidth-100), random(100, arenaHeight - 100), 0);
+
+    this.reds = new ArrayList<Creature>();
 
     this.thisPlayerPoints = 0;
     this.adversaryPoints  = 0;
@@ -35,6 +35,8 @@ class PlayState {
     this.keys.setBoolean("w", false);
     this.keys.setBoolean("a", false);
     this.keys.setBoolean("d", false);
+
+    this.timeSlice = millis();
   }
   
   void keyTyped() {
@@ -62,9 +64,20 @@ class PlayState {
     
     this.greens[0].prepareUpdate(this.thisPlayer, this.adversary);
     this.greens[1].prepareUpdate(this.thisPlayer, this.adversary);
-    
-    this.reds[0].prepareUpdate(this.thisPlayer, this.adversary);
-    this.reds[1].prepareUpdate(this.thisPlayer, this.adversary);
+
+    for(Creature red: this.reds) {
+      red.prepareUpdate(this.thisPlayer, this.adversary);
+    }
+  }
+  void updateRedsList() {
+    int currentMillis = millis();
+    print(currentMillis + "\n");
+    //print(millis() - this.timeSlice + "\n");
+    if( currentMillis - this.timeSlice > 10000) {
+      print("Created new creature.\n");
+      this.reds.add( new Creature(random(100, arenaWidth-100), random(100, arenaHeight - 100), 1) );
+      this.timeSlice = currentMillis;
+    }
   }
 
   void update() {
@@ -75,20 +88,21 @@ class PlayState {
     this.greens[0].update();
     this.greens[1].update();
     
-    this.reds[0].update();
-    this.reds[1].update();
+    for(Creature red: this.reds) {
+      red.update();
+    }
+    
+    this.updateRedsList();
   }
 
   void draw() {
-    // this.prepareUpdate();
-    // this.update();
-  
     // Draw
     this.greens[0].draw(this.assets);
     this.greens[1].draw(this.assets);
     
-    this.reds[0].draw(this.assets);
-    this.reds[1].draw(this.assets);
+    for(Creature red: this.reds) {
+      red.draw(this.assets);
+    }
     
     this.thisPlayer.draw(this.assets);
     this.adversary.draw(this.assets);

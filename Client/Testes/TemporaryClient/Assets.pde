@@ -31,5 +31,6 @@ class Assets {
     this.player1 = loadImage("./Assets/pizza2.png");
     // this.player.resize( int(this.player.width * this.playerSize), int(this.player.height * this.playerSize));
     this.player1.resize( this.playerSize, this.playerSize);
+    
   }
 }
