@@ -68,20 +68,30 @@ void setup() {
                     .setPosition( width/2 + spacing_size, height/2 - spacing_size - fields_height )
                     .setSize( button_width, fields_height )
                     .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
-                       public void controlEvent(CallbackEvent theEvent) {
-                         username = cp5.get(Textfield.class,"Username").getText();
-                         password = cp5.get(Textfield.class,"Password").getText();
-                         writeSocket.login(username,password);
-                         try{
-                            // if(!playState){
-                            //   // server_connection_label.
-                            // }
+                      public void controlEvent(CallbackEvent theEvent) {
+                        username = cp5.get(Textfield.class,"Username").getText();
+                        password = cp5.get(Textfield.class,"Password").getText();
+                        writeSocket.login(username,password);
+                        // readSocket.l.lock();
+                        try{
+
+                          readSocket.start.await();
+                            String m = readSocket.getMessage();
+                            if( m.equals("login error") ){
+                              server_connection_label.setText("Login Error. Try again");
+                            }
                             cp5.hide();
                             gameState = game_screen;
-                         }catch(Exception e){e.printStackTrace();}
 
-                       }
-                     })
+                        }catch(Exception e){
+                          e.printStackTrace();
+                        }
+                        // finally{
+                        //   readSocket.l.unlock();
+                        // }
+
+                      }
+                    })
                     ;
   password_textfield = cp5.addTextfield( "Password" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 + spacing_size )
@@ -94,9 +104,11 @@ void setup() {
                           .setPosition( width/2 + spacing_size, height/2 + spacing_size )
                           .setSize( button_width, fields_height )
                           ;
-  server_connection_label = cp5.addTextlabel("Connection with server OK")
-                               .setPosition(width/2, height/2 + 2*spacing_size + fields_height)
+  server_connection_label = cp5.addTextlabel("Connecting to server")
+                               .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
+                               // .setColor(100)
                                .setFont(font)
+                               .setText("Connecting to server")
                                // setFont(createFont("Calibri",20))
                                ;
 }

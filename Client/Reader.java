@@ -10,12 +10,19 @@ public class Reader extends Thread {
    BufferedReader in;
    Client.PlayState state;
    String message;
+   Lock l;
+   Condition start;
+   boolean ready;
 
   private Reader(){
     this.socket = null;
     this.in = null;
     this.state = null;
     this.message = "";
+
+    this.l = null;
+    this.start = null;
+    this.ready = false;
   }
 
   public Reader(Socket socket, Client.PlayState state){
@@ -23,6 +30,10 @@ public class Reader extends Thread {
     this.in = null;
     this.state = state;
     this.message = "";
+
+    this.l = new ReentrantLock();
+    this.start = l.newCondition();
+    this.ready = false;
   }
 
   public void connect(){
@@ -50,20 +61,31 @@ public class Reader extends Thread {
   public void createAccount(String user, String password){
 
   }
+
+  public String getMessage(){
+    return this.message;
+  }
+
   public void run(){
     try{
       this.connect();
       while(true){
-        this.message = in.readLine();
-        if( this.message.equals("login successful") ){
-          System.out.println("login successful\n");
-        }
-        if( this.message.equals("login error") ){
-          System.out.println("login error");
-        }
-        if( this.message.equals(".........") ){
-          state  = new PlayState( assets );
+        this.l.lock();
+        try{
+          this.message = in.readLine();
+          if( this.message.equals("login successful") ){
+            this.ready = true;
+            this.start.notifyAll();
+            System.out.println("login successful\n");
+          }else if( this.message.equals("login error") ){
+            this.start.notifyAll();
+            System.out.println("login error");
+          }else if( this.message.equals(".........") ){
 
+
+          }
+        }finally{
+          this.l.unlock();
         }
 
       }
