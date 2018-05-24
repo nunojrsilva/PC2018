@@ -16,7 +16,7 @@ class Assets {
 
   Assets() {
     background = loadImage("./Assets/brickWall.png");
-    background.resize(width, height);
+    background.resize(arenaWidth, arenaHeight);
 
     this.green = loadImage("./Assets/pepperoni.png");
     this.green.resize(this.greenSize, this.greenSize);
@@ -31,5 +31,6 @@ class Assets {
     this.player1 = loadImage("./Assets/pizza2.png");
     // this.player.resize( int(this.player.width * this.playerSize), int(this.player.height * this.playerSize));
     this.player1.resize( this.playerSize, this.playerSize);
+    
   }
 }

@@ -12,7 +12,7 @@ start (Port) ->
     PidLogin = spawn( fun() -> login_manager:start() end), % Criar processo que se encarrega de guardar os logins e validar passwords
     %spawn( fun() -> start() end),
     register(login_manager, PidLogin ),
-    {ok, LSock} = gen_tcp:listen(Port, [binary, {packet, line}]),
+    {ok, LSock} = gen_tcp:listen(Port, [binary, {packet, line}, {reuseaddr, true}]),
     acceptor(LSock).
 
 
