@@ -151,8 +151,8 @@ void setup() {
                                .setGroup(login)
                                // setFont(createFont("Calibri",20))
                                ;
-cp5.addButton("END GAME")
-   .
+// cp5.addButton("END GAME")
+//    .
 }
 
 void draw() {
@@ -166,7 +166,7 @@ void draw() {
     case game_screen:
       cp5.getGroup("login").hide();
       cp5.getGroup("result").hide();
-      // background(0);
+      background(0);
       cp5.getGroup("game").show();
 
       background(255);
@@ -175,6 +175,8 @@ void draw() {
       noFill();
       stroke(0);
       rect(0, 0, arenaWidth, arenaHeight);
+      state.prepareUpdate();
+      state.update();
       state.draw();
       break;
 
@@ -189,6 +191,10 @@ void draw() {
       break;
   }
 
+}
+
+void keyTyped() {
+  state.keyTyped();
 }
 
 void draw_login_screen(){
