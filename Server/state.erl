@@ -10,12 +10,6 @@
 % trate da parte do jogo em si e que depois comunique no final o resultado certo? Esse processo comunica por mensagens com os processos user dos clientes
 %
 
-start() ->
-    % Nao sei se será necessária esta funcao, vamos manter just in case
-    estado( #{}, [], #{}, #{})
-    .
-
-
 
 estado(Users_Score, Waiting, TopLevels, TopScore) ->
     io:format("Entrei no estado ~n"),
@@ -105,10 +99,6 @@ update(State) ->
 updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
     {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = P1,
     {EPosition, EDirection, EVelocity, EEnergy, EType, EFrontAcceleration, EAngularVelocity, EMaxEnergy, EEnergyWaste, EEnergyGain, EDrag, ESize} = P2,
-    P1PositionOffset = {0,0},
-    P1EnergyToAdd = 0,
-    P2PositionOffset = {0,0},
-    P2EnergyToAdd = 0,
 
     Distance = distanceBetween(Position, EPosition),
     VectorP1toP2 = subtractVectors(Position, EPosition),
@@ -155,6 +145,7 @@ updateCreature(Creature, P1, P2) ->
 
     {Position, Direction, DesiredDirection, Size, Type, Velocity}.
 
+
 multiplyVector(Vector, Mag) ->
     {X,Y} = Vector,
     { Mag * X, Mag * Y}.
@@ -184,3 +175,8 @@ subtractVectors(Pos1, Pos2) ->
     {X1, Y1} = Pos1,
     {X2, Y2} = Pos2,
     {X2 - X1, Y2 - Y1}.
+
+start() ->
+    % Nao sei se será necessária esta funcao, vamos manter just in case
+    estado( #{}, [], #{}, #{})
+    .
