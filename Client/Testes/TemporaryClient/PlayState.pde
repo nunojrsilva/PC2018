@@ -1,8 +1,6 @@
 
 
 class PlayState {
-  Assets assets;
-
   PlayerAvatar thisPlayer;
   PlayerAvatar adversary;
   Creature[] greens;
@@ -14,7 +12,7 @@ class PlayState {
   int thisPlayerPoints;
   int adversaryPoints;
   
-  PlayState (Assets assets) {
+  PlayState () {
     this.thisPlayer = new PlayerAvatar( random(100, width-100), random(100, height - 100), 0);
     this.adversary  = new PlayerAvatar( random(100, width-100), random(100, height - 100), 1);
     
@@ -28,8 +26,7 @@ class PlayState {
 
     this.thisPlayerPoints = 0;
     this.adversaryPoints  = 0;
-    
-    this.assets = assets;
+   
      
     this.keys = new JSONObject();
     this.keys.setBoolean("w", false);
@@ -84,14 +81,14 @@ class PlayState {
     // this.update();
   
     // Draw
-    this.greens[0].draw(this.assets);
-    this.greens[1].draw(this.assets);
+    this.greens[0].draw();
+    this.greens[1].draw();
     
-    this.reds[0].draw(this.assets);
-    this.reds[1].draw(this.assets);
+    this.reds[0].draw();
+    this.reds[1].draw();
     
-    this.thisPlayer.draw(this.assets);
-    this.adversary.draw(this.assets);
+    this.thisPlayer.draw();
+    this.adversary.draw();
     
     // for(red in this.reds) red.draw();
     this.thisPlayer.drawEnergy();

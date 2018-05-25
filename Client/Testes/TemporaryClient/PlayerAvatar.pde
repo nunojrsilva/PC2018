@@ -140,7 +140,7 @@ class PlayerAvatar {
      rect(12, 12, abs(this.energy * 10 - 4), 26);
   }
 
-  void draw( Assets assets ) {
+  void draw(  ) {
     // Draw the object at position and rotated by the Direction.
     pushMatrix();
     // Vai para a posição do jogador

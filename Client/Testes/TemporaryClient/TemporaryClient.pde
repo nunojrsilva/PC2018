@@ -14,7 +14,7 @@ void setup() {
   frameRate(40);
   
   assets = new Assets();
-  state  = new PlayState( assets );
+  state  = new PlayState();
 }
 
 void draw() {
