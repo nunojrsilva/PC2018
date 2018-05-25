@@ -1,13 +1,13 @@
 -module (server).
--export ([start/1]).
--import (login_manager, [start/0,login/2, create_account/2]). %INCOMPLETO
+-export ([start/0]).
+-import (login_manager, [startLM/0,login/2, create_account/2]). %INCOMPLETO
 %-import (state,[]). %INCOMPLETO
 
 % Modulo que implementa um servidor para o jogo "Vaga Vermelha"
 
 start () ->
     %Room = spawn( fun() -> room( [] ,#{}) end),
-    PidState = spawn ( fun() -> state:start() end), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
+    PidState = spawn ( fun() -> state:startLM() end), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
     register(state, PidState),
     PidLogin = spawn( fun() -> login_manager:start() end), % Criar processo que se encarrega de guardar os logins e validar passwords
     %spawn( fun() -> start() end),

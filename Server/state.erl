@@ -60,9 +60,9 @@ gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre d
     %io:fwrite("GameManager ativo entre ~p",[]),
     Creatures = 12,
     Estado = {newPlayer(1), newPlayer(2),  [newCreature(g), newCreature(g)], {1200,800}},
-    io:fwrite("Estado: ~p", [Estado]),
+    io:fwrite("Estado: ~p", [Estado]).
     %io:fwrite("Estado depois de update: ~p", [update(Estado)])
-    .
+    
 
 
 
