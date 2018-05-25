@@ -49,7 +49,7 @@ class Creature {
     this.position.add(this.direction);
   }
 
-  void draw(Assets assets) {
+  void draw() {
     if(this.type == 0) image(assets.green, this.position.x, this.position.y);
     else image(assets.red, this.position.x, this.position.y);
   }
