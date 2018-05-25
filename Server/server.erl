@@ -7,9 +7,10 @@
 
 start () ->
     %Room = spawn( fun() -> room( [] ,#{}) end),
-    PidState = spawn ( fun() -> state:startLM() end), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
+    PidState = spawn ( fun() -> state:start() end), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
     register(state, PidState),
-    PidLogin = spawn( fun() -> login_manager:start() end), % Criar processo que se encarrega de guardar os logins e validar passwords
+    io:format("~p", [PidState]),
+    PidLogin = spawn( fun() -> login_manager:startLM() end), % Criar processo que se encarrega de guardar os logins e validar passwords
     %spawn( fun() -> start() end),
     register(login_manager, PidLogin ),
     {ok, LSock} = gen_tcp:listen(12345, [binary, {packet, line}, {reuseaddr, true}]),
@@ -72,8 +73,11 @@ authenticator(Sock) ->
 user(Sock, Username) ->
     state ! {ready, Username, self()},
     gen_tcp:send(Sock, <<"Waiting for the server\n">>),
+    io:format("Bloquear à espera de go!"),
+    io:format("PidState = ~p ~n", [state]),
     receive % Bloqueia à espera da resposta do servidor
-        {go, GameManager, state} ->
+        {go, GameManager} ->
+            io:format("Recebi go , vou para o GameManager"),
             userOnGame(Sock, GameManager) % Entra em modo "game"
     end.
 
@@ -84,6 +88,7 @@ userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
+            io:format("Recebi coisas do cliente ~p ~n",[Data]),
             GameManager ! {line, Data, self()},
             userOnGame(Sock, GameManager);
         {tcp_closed, _} ->

@@ -31,7 +31,10 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
                             Game = spawn( fun() -> gameManager ({Username, UserProcess}, {UsernameQueue, UserProcessQueue}) end ),
-                            UserProcess ! UserProcessQueue  ! {go, Game},
+                            io:format("Vou enviar go"),
+                            %UserProcess ! UserProcessQueue  ! {go, Game, self()},
+                            UserProcess ! {go, Game},
+                            UserProcessQueue ! {go, Game},
                             estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
                 ;
@@ -45,7 +48,11 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             Game = spawn( fun() -> gameManager({Username, UserProcess}, {UsernameQueue, UserProcessQueue}) end),
-                            UserProcess ! UserProcessQueue ! {go, Game},
+                            io:format("Vou enviar go"),
+                            io:format("Self = ~p ~n", [self()]),
+                            %UserProcess ! UserProcessQueue ! {go, Game, self()},
+                            UserProcess ! {go, Game},
+                            UserProcessQueue ! {go, Game},
                             estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
                 end
@@ -58,11 +65,23 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
 
 gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     %io:fwrite("GameManager ativo entre ~p",[]),
+    {Username1, UserProcess1} = PlayerOne,
+    {Username2, UserProcess2} = PlayerTwo,
     Creatures = 12,
     Estado = {newPlayer(1), newPlayer(2),  [newCreature(g), newCreature(g)], {1200,800}},
-    io:fwrite("Estado: ~p", [Estado]).
+    io:fwrite("Estado: ~p", [Estado]),
+    receive
+        {line, Data, UserProcess1} ->
+            io:fwrite("Recebi ~p ~n",[Data]),
+            io:fwrite("De ~p ~n", [Username1]);
+        {line, Data, UserProcess2} ->
+            io:fwrite("Recebi ~p ~n",[Data]),
+            io:fwrite("De ~p ~n", [Username2])
+
+    end
+    .
     %io:fwrite("Estado depois de update: ~p", [update(Estado)])
-    
+
 
 
 
