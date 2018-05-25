@@ -5,6 +5,12 @@ import java.util.*;
 import java.lang.Thread;
 
 ControlP5 cp5;
+Group login;
+Group game;
+Group result;
+
+int arenaWidth = 1200;
+int arenaHeight = 800;
 
 String username = "";
 String password = "";
@@ -20,10 +26,6 @@ final int button_width = 100;
 final int spacing_size = 10;
 final int server_connection_label_size = spacing_size*2 + button_width + textfield_width;
 
-controlP5.Button login_button;
-controlP5.Button new_account_button;
-controlP5.Textfield username_textfield;
-controlP5.Textfield password_textfield;
 controlP5.Textlabel server_connection_label;
 
 final int login_screen = 0;
@@ -38,12 +40,15 @@ void setup() {
 
   assets = new Assets();
   state = new PlayState(assets);
-  // fullScreen();
-  size(800,800);
+  fullScreen();
+  // size(800,800);
   frameRate(40);
   pixelDensity( displayDensity() );
 
-  cp5 = new ControlP5(this);
+  cp5        = new ControlP5(this);
+  login      = cp5.addGroup("login");
+  game       = cp5.addGroup("game");
+  result     = cp5.addGroup("result");
   PFont font = createFont("Arial", 12);
 
   try{
@@ -59,17 +64,18 @@ void setup() {
     readSocket.connect();
   }
 
-  username_textfield =  cp5.addTextfield( "Username" )
+  cp5.addTextfield( "Username" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
                            .setSize( textfield_width, fields_height )
                            .setFocus(true)
                            .setColorActive(color(255,0,0))
                            .setFont(font)
+                           .setGroup(login)
                            ;
-  login_button = cp5.addButton( "Login" )
-                    .setPosition( width/2 + spacing_size, height/2 - spacing_size - fields_height )
-                    .setSize( button_width, fields_height )
-                    .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
+  cp5.addButton( "Login" )
+     .setPosition( width/2 + spacing_size, height/2 - spacing_size - fields_height )
+     .setSize( button_width, fields_height )
+     .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
                       public void controlEvent(CallbackEvent theEvent) {
                         username = cp5.get(Textfield.class,"Username").getText();
                         password = cp5.get(Textfield.class,"Password").getText();
@@ -100,18 +106,20 @@ void setup() {
 
                       } // closes method
                     })
+     .setGroup(login)
                     ;
-  password_textfield = cp5.addTextfield( "Password" )
-                           .setPosition( width/2 - spacing_size - textfield_width, height/2 + spacing_size )
-                           .setSize( textfield_width, fields_height)
-                           .setPasswordMode(true)
-                           .setColorActive(color(255,0,0))
-                           .setFont(font)
+  cp5.addTextfield( "Password" )
+     .setPosition( width/2 - spacing_size - textfield_width, height/2 + spacing_size )
+     .setSize( textfield_width, fields_height)
+     .setPasswordMode(true)
+     .setColorActive(color(255,0,0))
+     .setFont(font)
+     .setGroup(login)
                            ;
-  new_account_button = cp5.addButton( "New Account" )
-                          .setPosition( width/2 + spacing_size, height/2 + spacing_size )
-                          .setSize( button_width, fields_height )
-                          .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
+  cp5.addButton( "New Account" )
+     .setPosition( width/2 + spacing_size, height/2 + spacing_size )
+     .setSize( button_width, fields_height )
+     .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
                             public void controlEvent(CallbackEvent theEvent) {
                               username = cp5.get(Textfield.class,"Username").getText();
                               password = cp5.get(Textfield.class,"Password").getText();
@@ -133,14 +141,18 @@ void setup() {
                               }
                             }
                           })
+     .setGroup(login)
                           ;
   server_connection_label = cp5.addTextlabel("Connecting to server")
                                .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
                                // .setColor(100)
                                .setFont(font)
                                .setText("Connecting to server")
+                               .setGroup(login)
                                // setFont(createFont("Calibri",20))
                                ;
+cp5.addButton("END GAME")
+   .
 }
 
 void draw() {
@@ -148,17 +160,29 @@ void draw() {
     case login_screen:
       cp5.show();
       background(0);
-      login_screen();
+      draw_login_screen();
       break;
 
     case game_screen:
-      cp5.hide();
-      background(0);
+      cp5.getGroup("login").hide();
+      cp5.getGroup("result").hide();
+      // background(0);
+      cp5.getGroup("game").show();
+
+      background(255);
+      translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
+      image(assets.background,0,0);
+      noFill();
+      stroke(0);
+      rect(0, 0, arenaWidth, arenaHeight);
       state.draw();
       break;
 
     case result_screen:
-
+      cp5.getGroup("login").hide();
+      cp5.getGroup("game").hide();
+      background(0);
+      cp5.getGroup("result").show();
       break;
 
     default:
@@ -167,11 +191,18 @@ void draw() {
 
 }
 
-void login_screen(){
+void draw_login_screen(){
+  cp5.getGroup("game").hide();
+  cp5.getGroup("result").hide();
+  background(0);
+  cp5.getGroup("login").show();
+}
+
+void draw_game_screen(){
 
 }
 
-void result_screen(){
-  ControlP5 show_result_screen;
-  show_result_screen.
+void draw_result_screen(){
+
+  // show_result_screen.
 }
