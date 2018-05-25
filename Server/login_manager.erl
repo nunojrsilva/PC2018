@@ -1,10 +1,10 @@
 -module (login_manager).
--export( [start/0, create_account/2, close_account/2, login/2, logout/1, online/0]).
+-export( [startLM/0, create_account/2, close_account/2, login/2, logout/1, online/0]).
 
 % Map é um mapa de username -> {password, online} sendo true se está online ou false caso contrário
 
 
-start () ->
+startLM () ->
     Pid = spawn ( fun() -> loop ( #{} ) end ),
     register (module,Pid).
 
@@ -12,7 +12,7 @@ loop(Map) ->
     receive
         {create_account, User, Pass, From} ->
             case maps:find (User,Map) of
-                error when User /= "", Pass /= "" ->
+                error when User =:= "", Pass =:= "" ->
                     From ! {bad_arguments ,module},
                     loop (Map);
                 error ->
