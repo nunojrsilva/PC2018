@@ -123,9 +123,8 @@ void setup() {
                                   if( m.equals("create_account error") ){
                                     server_connection_label.setText("").setValue("Account creation Error. Try again");
                                     System.out.println("passou pelo erro de create account no Client.pde");
-                                  }else if( m.equals("create_account sucessful") ){
+                                  }else if( m.equals("create_account successful") ){
                                     readSocket.setStatus(true);
-                                    cp5.hide();
                                     gameState = game_screen;
                                     readSocket.start();
                                   }
@@ -147,16 +146,17 @@ void setup() {
 void draw() {
   switch(gameState){
     case login_screen:
-
+      cp5.show();
+      background(0);
+      login_screen();
       break;
+
     case game_screen:
-      cp5.getController("Password").hide();
-      password_textfield.hide();
-      login_button.hide();
-      new_account_button.hide();
-      server_connection_label.hide();
+      cp5.hide();
+      background(0);
       state.draw();
       break;
+
     case result_screen:
 
       break;
@@ -169,4 +169,9 @@ void draw() {
 
 void login_screen(){
 
+}
+
+void result_screen(){
+  ControlP5 show_result_screen;
+  show_result_screen.
 }
