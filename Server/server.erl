@@ -5,14 +5,14 @@
 
 % Modulo que implementa um servidor para o jogo "Vaga Vermelha"
 
-start (Port) ->
+start () ->
     %Room = spawn( fun() -> room( [] ,#{}) end),
     PidState = spawn ( fun() -> state:start() end), % Quero criar um processo que guarda e gere o estado atual desde que o servidor foi arrancado
     register(state, PidState),
     PidLogin = spawn( fun() -> login_manager:start() end), % Criar processo que se encarrega de guardar os logins e validar passwords
     %spawn( fun() -> start() end),
     register(login_manager, PidLogin ),
-    {ok, LSock} = gen_tcp:listen(Port, [binary, {packet, line}, {reuseaddr, true}]),
+    {ok, LSock} = gen_tcp:listen(12345, [binary, {packet, line}, {reuseaddr, true}]),
     acceptor(LSock).
 
 
@@ -36,7 +36,7 @@ authenticator(Sock) ->
                     [U | P] = St,
                     case login(U,P) of
                         ok ->
-                            gen_tcp:send(Sock, <<"login sucessful\n">>),
+                            gen_tcp:send(Sock, <<"login successful\n">>),
                             state ! {ready, self()}, % Avisa o processo state que está pronto
                             %gen_tcp:send(Sock, <<"Waiting for the server\n">>),
                             user(Sock, U);
@@ -51,7 +51,7 @@ authenticator(Sock) ->
                     [U | P] = St,
                     case create_account(U,P) of
                         ok ->
-                            gen_tcp:send(Sock, <<"create_account sucessful\n">>),
+                            gen_tcp:send(Sock, <<"create_account successful\n">>),
                             user(Sock, U);
                         _ ->
                             gen_tcp:send(Sock,<<"create_account error\n">>),

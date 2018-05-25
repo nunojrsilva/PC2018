@@ -12,6 +12,9 @@ loop(Map) ->
     receive
         {create_account, User, Pass, From} ->
             case maps:find (User,Map) of
+                error when User /= "", Pass /= "" ->
+                    From ! {bad_arguments ,module},
+                    loop (Map);
                 error ->
                     From ! {ok,module},
                     loop ( maps:put(User, {Pass, true}, Map) );
