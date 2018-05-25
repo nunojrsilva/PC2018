@@ -112,11 +112,8 @@ updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
     DirectionVecP1 = {cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity},
     DirectionVecP2 = {cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity},
 
-    NewP1Position = addPairs(P1Position, DirectionVecP1),
-    NewP2Position = addPairs(P2Position, DirectionVecP2),
-
-    NewNewP1Position = subtractVectors(VectorP1toP2, NewP1Position),
-    NewNewP2Position = addPairs(VectorP1toP2, NewP2Position),
+    NewP1Position = subtractVectors( VectorP1toP2, addPairs(P1Position, DirectionVecP1)),
+    NewP2Position = addPairs(VectorP1toP2, addPairs(P2Position, DirectionVecP2)),
 
     NewP1Velocity = P1Velocity - P1Drag,
     NewP2Velocity = P2Velocity - P2Drag,
@@ -124,8 +121,10 @@ updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
     NewP1Energy = P1Energy + P1EnergyGain + EnergyToAddP1,
     NewP2Energy = P2Energy + P2EnergyGain + EnergyToAddP2,
 
-    {{NewNewP1Position, P1Direction, NewP1Velocity, NewP1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size},
-        {NewNewP2Position, P2Direction, NewP2Velocity, NewP2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size}}.
+    {
+        {NewP1Position, P1Direction, NewP1Velocity, NewP1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size},
+        {NewP2Position, P2Direction, NewP2Velocity, NewP2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size}
+    }.
 
 
 updateCreatures(Creatures, P1, P2) ->
@@ -146,12 +145,10 @@ updateCreature(Creature, P1, P2) ->
         true -> NewDesiredDirection = subtractVectors(Position, PositionP2)
     end,
 
-    NewDirection = halfWayVector(Direction, NewDesiredDirection),
-    NewNewDirection = normalizeVector(NewDirection),
-    NewNewNewDirection = multiplyVector(NewNewDirection, Velocity),
-    NewPosition = addPairs(Position, NewNewNewDirection),
+    NewDirection = multiplyVector(normalizeVector(halfWayVector(Direction, NewDesiredDirection)), Velocity),
+    NewPosition = addPairs(Position, NewDirection),
 
-    {NewPosition, NewNewNewDirection, NewDesiredDirection, Size, Type, Velocity}.
+    {NewPosition, NewDirection, NewDesiredDirection, Size, Type, Velocity}.
 
 
 multiplyVector(Vector, Mag) ->
