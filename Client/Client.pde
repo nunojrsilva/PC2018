@@ -40,8 +40,8 @@ void setup() {
 
   assets = new Assets();
   state = new PlayState(assets);
-  fullScreen();
-  // size(800,800);
+  // fullScreen();
+  size(800,800);
   frameRate(40);
   pixelDensity( displayDensity() );
 
@@ -51,18 +51,7 @@ void setup() {
   result     = cp5.addGroup("result");
   PFont font = createFont("Arial", 12);
 
-  try{
-    socket = new Socket("localhost", 12345);
-  }catch(Exception e){
-    e.printStackTrace();
-  }
-
-  writeSocket = new Writer(socket);
-  server_connection_status = writeSocket.connect();
-  readSocket = new Reader(socket, state);
-  if(!server_connection_status.equals("server offline") ){
-    readSocket.connect();
-  }
+  connect();
 
   cp5.addTextfield( "Username" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
@@ -79,13 +68,16 @@ void setup() {
                       public void controlEvent(CallbackEvent theEvent) {
                         username = cp5.get(Textfield.class,"Username").getText();
                         password = cp5.get(Textfield.class,"Password").getText();
-                        writeSocket.login(username,password);
                         try{
 
                           if( server_connection_status.equals("Server offline") ){
-                            writeSocket.connect();
-                            readSocket.connect();
-                          }else{
+                            // writeSocket.connect();
+                            // readSocket.connect();
+                            connect();
+                            System.out.println(server_connection_status);
+                          }
+                          if( !server_connection_status.equals("Server offline") ){
+                            writeSocket.login(username,password);
                             String m = readSocket.getMessage();
                             if( m.equals("login error") ){
                               server_connection_label.setValue("Login Error. Try again");
@@ -123,10 +115,15 @@ void setup() {
                             public void controlEvent(CallbackEvent theEvent) {
                               username = cp5.get(Textfield.class,"Username").getText();
                               password = cp5.get(Textfield.class,"Password").getText();
-                              writeSocket.createAccount(username,password);
                               try{
-                                // readSocket.start.await();
-                                // não funciona porque não ha controlo de acesso à variável do readSocket
+                                if( server_connection_status.equals("Server offline") ){
+                                  // writeSocket.connect();
+                                  // readSocket.connect();
+                                  connect();
+                                  System.out.println(server_connection_status);
+                                }
+                                if( !server_connection_status.equals("Server offline") ){
+                                  writeSocket.createAccount(username,password);
                                   String m = readSocket.getMessage();
                                   if( m.equals("create_account error") ){
                                     server_connection_label.setText("").setValue("Account creation Error. Try again");
@@ -136,6 +133,7 @@ void setup() {
                                     gameState = game_screen;
                                     readSocket.start();
                                   }
+                                }
                               }catch(Exception e){
                                 e.printStackTrace();
                               }
@@ -211,4 +209,19 @@ void draw_game_screen(){
 void draw_result_screen(){
 
   // show_result_screen.
+}
+
+void connect(){
+  try{
+    socket = new Socket("localhost", 12345);
+  }catch(Exception e){
+    e.printStackTrace();
+  }
+
+  writeSocket = new Writer(socket);
+  server_connection_status = writeSocket.connect();
+  if(!server_connection_status.equals("server offline") ){
+    readSocket = new Reader(socket, state);
+    readSocket.connect();
+  }
 }
