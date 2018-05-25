@@ -24,7 +24,7 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
-                            Game = spawn( fun() -> gameManager ({Username, UserProcess}, {UsernameQueue, UserProcessQueue}) end ),
+                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end ),
                             UserProcess ! UserProcessQueue  ! {go, Game},
                             estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
@@ -38,7 +38,7 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopLevels, TopScore); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
-                            Game = spawn( fun() -> gameManager({Username, UserProcess}, {UsernameQueue, UserProcessQueue}) end),
+                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end),
                             UserProcess ! UserProcessQueue ! {go, Game},
                             estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
@@ -49,14 +49,19 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
     end
 .
 
+newState(Player1, Player2) ->
+    State = { {newPlayer(1), Player1}, {newPlayer(2), Player2}, [newCreature(g), newCreature(g)], [ ], {1200,800}},
+    io:fwrite("Estado: ~p", [State]),
+    State.
 
-gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
-    %io:fwrite("GameManager ativo entre ~p",[]),
-    Creatures = 12,
-    Estado = {newPlayer(1), newPlayer(2),  [newCreature(g), newCreature(g)], {1200,800}},
-    io:fwrite("Estado: ~p", [Estado]).
-    %io:fwrite("Estado depois de update: ~p", [update(Estado)])
-    
+
+gameManager(State)-> 
+    % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
+    receive
+        {keyPressed, Data, From} ->
+            {};
+        _ -> 2
+    end.
 
 
 
