@@ -60,7 +60,10 @@ gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre d
     %io:fwrite("GameManager ativo entre ~p",[]),
     Creatures = 12,
     Estado = {newPlayer(1), newPlayer(2),  [newCreature(g), newCreature(g)], {1200,800}},
-    io:fwrite("Estado: ~p", [Estado]).
+    io:fwrite("Estado: ~p", [Estado]),
+    %io:fwrite("Estado depois de update: ~p", [update(Estado)])
+    .
+
 
 
 
@@ -99,40 +102,41 @@ newCreature(Type) ->
 update(State) ->
     {P1, P2, Creatures, Size} = State,
     {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
-    NewCreat = updateCreatures(Creatures),
+    NewCreat = updateCreatures(Creatures, NewP1, NewP2),
     {NewP1, NewP2, NewCreat, Size}.
 
 updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
-    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = P1,
-    {EPosition, EDirection, EVelocity, EEnergy, EType, EFrontAcceleration, EAngularVelocity, EMaxEnergy, EEnergyWaste, EEnergyGain, EDrag, ESize} = P2,
-    P1PositionOffset = {0,0},
-    P1EnergyToAdd = 0,
-    P2PositionOffset = {0,0},
-    P2EnergyToAdd = 0,
+    {P1Position, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
+    {P2Position, P2Direction, P2Velocity, P2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size} = P2,
+    % P1PositionOffset = {0,0},
+    % P1EnergyToAdd = 0,
+    % P2PositionOffset = {0,0},
+    % P2EnergyToAdd = 0,
 
-    Distance = distanceBetween(Position, EPosition),
-    VectorP1toP2 = subtractVectors(Position, EPosition),
-    DirectionVecP1 = {cos(Direction) * Velocity, sin(Direction)* Velocity},
-    DirectionVecP2 = {cos(EDirection) * EVelocity, sin(EDirection)* EVelocity},
+    Distance = distanceBetween(P1Position, P2Position), %Porque é que precisamos disso?
+    VectorP1toP2 = subtractVectors(P1Position, P2Position),
+    DirectionVecP1 = {cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity},
+    DirectionVecP2 = {cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity},
 
-    Position = addPairs(Position, DirectionVecP1),
-    EDirection = addPairs(EPosition, DirectionVecP2),
+    NewP1Position = addPairs(P1Position, DirectionVecP1),
+    NewP2Position = addPairs(P2Position, DirectionVecP2),
 
-    Position = subtractVectors(VectorP1toP2, Position),
-    EPosition = addPairs(VectorP1toP2, EPosition),
+    NewNewP1Position = subtractVectors(VectorP1toP2, NewP1Position),
+    NewNewP2Position = addPairs(VectorP1toP2, NewP2Position),
 
-    Velocity = Velocity - Drag,
-    EVelocity = EVelocity - EDrag,
+    NewP1Velocity = P1Velocity - P1Drag,
+    NewP2Velocity = P2Velocity - P2Drag,
 
-    Energy = Energy + EnergyGain + EnergyToAddP1,
-    EEnergy = EEnergy + EEnergyGain + EnergyToAddP2,
+    NewP1Energy = P1Energy + P1EnergyGain + EnergyToAddP1,
+    NewP2Energy = P2Energy + P2EnergyGain + EnergyToAddP2,
 
-    {{Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size},
-        {EPosition, EDirection, EVelocity, EEnergy, EType, EFrontAcceleration, EAngularVelocity, EMaxEnergy, EEnergyWaste, EEnergyGain, EDrag, ESize}}.
+    {{NewNewP1Position, P1Direction, NewP1Velocity, NewP1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size},
+        {NewNewP2Position, P2Direction, NewP2Velocity, NewP2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size}}.
 
 
-updateCreatures(Creatures) ->
-    lists:map(updateCreature, Creatures).
+updateCreatures(Creatures, P1, P2) ->
+    %lists:map(updateCreature, Creatures).
+    [ updateCreature(Creature, P1, P2) || Creature <- Creatures].
 
 
 updateCreature(Creature, P1, P2) ->
@@ -144,16 +148,16 @@ updateCreature(Creature, P1, P2) ->
     DistanceP2 = distanceBetween(Position, PositionP2),
 
     if
-        DistanceP1 < DistanceP2 -> DesiredDirection = subtractVectors(Position, PositionP1);
-        true -> DesiredDirection = subtractVectors(Position, PositionP2)
+        DistanceP1 < DistanceP2 -> NewDesiredDirection = subtractVectors(Position, PositionP1);
+        true -> NewDesiredDirection = subtractVectors(Position, PositionP2)
     end,
 
-    Direction = halfWayVector(Direction, DesiredDirection),
-    Direction = normalizeVector(Direction),
-    Direction = multiplyVector(Direction, Velocity),
-    Position = addPairs(Position, Direction),
+    NewDirection = halfWayVector(Direction, NewDesiredDirection),
+    NewNewDirection = normalizeVector(NewDirection),
+    NewNewNewDirection = multiplyVector(NewNewDirection, Velocity),
+    NewPosition = addPairs(Position, NewNewNewDirection),
 
-    {Position, Direction, DesiredDirection, Size, Type, Velocity}.
+    {NewPosition, NewNewNewDirection, NewDesiredDirection, Size, Type, Velocity}.
 
 multiplyVector(Vector, Mag) ->
     {X,Y} = Vector,
@@ -165,6 +169,8 @@ normalizeVector(Vector) ->
     { X/Divisor, Y/Divisor }.
 
 halfWayVector(Vector1, Vector2) ->
+    io:fwrite("Argumentos do halfWayVector : ~p",[Vector1]),
+    io:fwrite("Argumentos do halfWayVector : ~p",[Vector2]),
     {X1, Y1} = Vector1,
     {X2, Y2} = Vector2,
     { (X1 + X2)/2, (Y1 + Y2)/2}.
