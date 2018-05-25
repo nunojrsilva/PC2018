@@ -100,17 +100,12 @@ update(State) ->
     {NewP1, NewP2, NewCreat, Size}.
 
 updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
-<<<<<<< HEAD
-    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = P1,
-    {EPosition, EDirection, EVelocity, EEnergy, EType, EFrontAcceleration, EAngularVelocity, EMaxEnergy, EEnergyWaste, EEnergyGain, EDrag, ESize} = P2,
-=======
     {P1Position, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
     {P2Position, P2Direction, P2Velocity, P2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size} = P2,
     % P1PositionOffset = {0,0},
     % P1EnergyToAdd = 0,
     % P2PositionOffset = {0,0},
     % P2EnergyToAdd = 0,
->>>>>>> 3b1d329ff96b749d6656fe557a369176ce757c39
 
     Distance = distanceBetween(P1Position, P2Position), %Porque é que precisamos disso?
     VectorP1toP2 = subtractVectors(P1Position, P2Position),
