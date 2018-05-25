@@ -60,7 +60,7 @@ authenticator(Sock) ->
                     end
                 ;
                 _ ->
-                    gen_tcp:send(Sock,<<"No match for that option ~n">>),
+                    gen_tcp:send(Sock,<<"No match for that option \n">>),
                     io:format("dados ~p~n",[Data]),
                     authenticator(Sock)
             end
@@ -72,7 +72,7 @@ authenticator(Sock) ->
 
 user(Sock, Username) ->
     state ! {ready, Username, self()},
-    gen_tcp:send(Sock, <<"Waiting for the server\n">>),
+    gen_tcp:send(Sock, <<"Waiting for your oponent\n">>),
     io:format("Bloquear à espera de go!"),
     io:format("PidState = ~p ~n", [state]),
     receive % Bloqueia à espera da resposta do servidor

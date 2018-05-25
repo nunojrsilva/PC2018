@@ -1,6 +1,7 @@
 -module (state).
 -export ([start/0]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
+-import (timer, [send_after/3]).
 
 % O que será necessário manter no estado?
 % - Map User -> {PartidasVencidas, Nivel} -- Reset ao PartidasVencidas quando subir de nivel
@@ -25,6 +26,7 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
                             Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end ),
+                            Timer = spawn( fun() -> refreshTimer(Game) end),
                             UserProcess ! UserProcessQueue  ! {go, Game},
                             estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
@@ -39,6 +41,7 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end),
+                            Timer = spawn( fun() -> refreshTimer(Game) end),
                             UserProcess ! UserProcessQueue ! {go, Game},
                             estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
@@ -55,13 +58,27 @@ newState(Player1, Player2) ->
     State.
 
 
-gameManager(State)-> 
+gameManager(State)->
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     receive
         {keyPressed, Data, From} ->
-            {};
-        _ -> 2
+            io:format("Entrei no keyPressed ~n"),
+            gameManager(State);
+        refresh ->
+            io:format("Entrei no ramo refresh ~n"),
+            gameManager(State)
     end.
+
+refreshTimer (Pid) ->
+    Step = 1000,
+    send_after(Step, Pid, refresh),
+    receive
+        after
+            1000 ->
+                refreshTimer(Pid)
+    end
+    .
+
 
 
 
