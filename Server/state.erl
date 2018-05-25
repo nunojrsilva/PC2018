@@ -18,7 +18,7 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
         {ready, Username, UserProcess} -> % Se há um user pronto a jogar, temos que ver qual é o seu nivel
             io:format("Recebi ready de ~p ~n", [Username]),
             case maps:find(Username, Users_Score) of
-                {ok, {_, UserLevel }} -> % Descobrir nivel do User
+                {ok, {_, UserLevel }} -> % Descobrir nivel do User {GamesWon, UserLevel}
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
                              estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopLevels, TopScore); %Adicionar User à queue porque não há ninguém para jogar com ele
@@ -46,24 +46,53 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                             estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
                 end
-            ;
-        {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
-            Result
+
+        % {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
+        %     {{Username1, Score1}, {Username2, Score2}} = Result,
+        %
+        %     % Atualização da Pontuação do User1
+        %
+        %     {ok, {GamesWon1, UserLevel1} } = maps:find(Username1, Users_Score),
+        %     {ok, {GamesWon2, USer}}
+        %
+        %     if
+        %         Score1 > Score2 ->
+        %             NewGamesWon1 = GamesWon1 + 1,
+        %             if
+        %                 NewGamesWon1 > UserLevel1 ->
+        %                     NewUserLevel1 = UserLevel1 + 1,
+        %             true ->
+        %                 NewUserLevel1 = UserLevel1
+        %             end
+        %
+        %         true ->
+        %             NewGamesWon1 = GamesWon1,
+        %             NewUserLevel1 = UserLevel1
+        %     end,
+        %     NewMap = maps:put(Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
+        %     estado (NewMap, Waiting, TopLevels, TopScore); % Vale a pena guardar TopLEvels e TopScore?
+
     end
 .
 
 newState(Player1, Player2) ->
     State = { {newPlayer(1), Player1}, {newPlayer(2), Player2}, [newCreature(g), newCreature(g)], [ ], {1200,800}},
-    io:fwrite("Estado: ~p", [State]),
+    io:fwrite("Estado: ~p ~n", [State]),
     State.
 
 
 gameManager(State)->
+    % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     receive
         {keyPressed, Data, From} ->
             io:format("Entrei no keyPressed ~n"),
             gameManager(State);
+        {leave, From} ->
+            {}
+
+
+            ;
         refresh ->
             io:format("Entrei no ramo refresh ~n"),
             gameManager(State)

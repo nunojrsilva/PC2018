@@ -73,8 +73,7 @@ authenticator(Sock) ->
 user(Sock, Username) ->
     state ! {ready, Username, self()},
     gen_tcp:send(Sock, <<"Waiting for your oponent\n">>),
-    io:format("Bloquear à espera de go!"),
-    io:format("PidState = ~p ~n", [state]),
+    io:format("Vou bloquear à espera de go!~n"),
     receive % Bloqueia à espera da resposta do servidor
         {go, GameManager} ->
             io:format("Recebi go , vou para o GameManager"),
