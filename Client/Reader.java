@@ -36,12 +36,14 @@ public class Reader extends Thread {
     this.ready = false;
   }
 
-  public void connect(){
+  public String connect(){
     try {
       this.in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-    }catch(IOException e){
-      e.printStackTrace();
+    }catch(Exception e){
+      // e.printStackTrace();
+      return "Server offline";
     }
+    return "Server online";
   }
 
   public void disconnect() throws IOException{
@@ -49,12 +51,16 @@ public class Reader extends Thread {
     socket.close();
   }
 
-  public boolean checkStatus(){
-    if (this.in != null){
+  public boolean getStatus(){
+    if (this.ready){
       return true;
     }else{
       return false;
     }
+  }
+
+  public void setStatus(boolean status){
+    this.ready = status;
   }
 
 
@@ -63,6 +69,16 @@ public class Reader extends Thread {
   }
 
   public String getMessage(){
+    try{
+      this.message = in.readLine();
+      return this.message;
+    }catch (Exception e){
+      e.printStackTrace();
+    }
+    return "Error connecting to server";
+  }
+
+  public String checkMessage(){
     return this.message;
   }
 
@@ -73,14 +89,15 @@ public class Reader extends Thread {
         this.l.lock();
         try{
           this.message = in.readLine();
-          if( this.message.equals("login successful") ){
-            this.ready = true;
-            // this.start.notifyAll();
-            System.out.println("login successful\n");
-          }else if( this.message.equals("login error") ){
-            // this.start.notifyAll();
-            System.out.println("login error");
-          }else if( this.message.equals(".........") ){
+          // if( this.message.equals("login successful") ){
+          //   this.ready = true;
+          //   // this.start.notifyAll();
+          //   System.out.println("login successful\n");
+          // }else if( this.message.equals("login error") ){
+          //   // this.start.notifyAll();
+          //   System.out.println("login error");
+          // }else
+          if( this.message.equals(".........") ){
 
 
           }

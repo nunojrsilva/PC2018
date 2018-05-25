@@ -53,18 +53,20 @@ void setup() {
   }
 
   writeSocket = new Writer(socket);
-  writeSocket.connect();
+  server_connection_status = writeSocket.connect();
   readSocket = new Reader(socket, state);
-  readSocket.start();
+  if(!server_connection_status.equals("server offline") ){
+    readSocket.connect();
+  }
 
-  cp5.addTextfield( "Username" )
+  username_textfield =  cp5.addTextfield( "Username" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
                            .setSize( textfield_width, fields_height )
                            .setFocus(true)
                            .setColorActive(color(255,0,0))
                            .setFont(font)
                            ;
-  cp5.addButton( "Login" )
+  login_button = cp5.addButton( "Login" )
                     .setPosition( width/2 + spacing_size, height/2 - spacing_size - fields_height )
                     .setSize( button_width, fields_height )
                     .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
@@ -74,33 +76,66 @@ void setup() {
                         writeSocket.login(username,password);
                         try{
 
-                          // readSocket.start.await();
+                          if( server_connection_status.equals("Server offline") ){
+                            writeSocket.connect();
+                            readSocket.connect();
+                          }else{
                             String m = readSocket.getMessage();
                             if( m.equals("login error") ){
-                              server_connection_label.setText("Login Error. Try again");
+                              server_connection_label.setValue("Login Error. Try again");
+                              System.out.println("passou pelo erro de login no Client.pde");
+                            }else if ( m.equals("login successful") ){
+                              readSocket.setStatus(true);
+                              cp5.hide();
+                              gameState = game_screen;
+                              readSocket.start();
                             }
-                            // cp5.hide();
-                            gameState = game_screen;
+                          }
+                        } // closes try
+                          catch(Exception e){
+                            e.printStackTrace();
+                          }
 
-                        }catch(Exception e){
-                          e.printStackTrace();
-                        }
 
-                      }
+
+                      } // closes method
                     })
                     ;
-  cp5.addTextfield( "Password" )
+  password_textfield = cp5.addTextfield( "Password" )
                            .setPosition( width/2 - spacing_size - textfield_width, height/2 + spacing_size )
                            .setSize( textfield_width, fields_height)
                            .setPasswordMode(true)
                            .setColorActive(color(255,0,0))
                            .setFont(font)
                            ;
-  cp5.addButton( "New Account" )
+  new_account_button = cp5.addButton( "New Account" )
                           .setPosition( width/2 + spacing_size, height/2 + spacing_size )
                           .setSize( button_width, fields_height )
+                          .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
+                            public void controlEvent(CallbackEvent theEvent) {
+                              username = cp5.get(Textfield.class,"Username").getText();
+                              password = cp5.get(Textfield.class,"Password").getText();
+                              writeSocket.createAccount(username,password);
+                              try{
+                                // readSocket.start.await();
+                                // não funciona porque não ha controlo de acesso à variável do readSocket
+                                  String m = readSocket.getMessage();
+                                  if( m.equals("create_account error") ){
+                                    server_connection_label.setText("").setValue("Account creation Error. Try again");
+                                    System.out.println("passou pelo erro de create account no Client.pde");
+                                  }else if( m.equals("create_account sucessful") ){
+                                    readSocket.setStatus(true);
+                                    cp5.hide();
+                                    gameState = game_screen;
+                                    readSocket.start();
+                                  }
+                              }catch(Exception e){
+                                e.printStackTrace();
+                              }
+                            }
+                          })
                           ;
-  cp5.addTextlabel("Connecting to server")
+  server_connection_label = cp5.addTextlabel("Connecting to server")
                                .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
                                // .setColor(100)
                                .setFont(font)
@@ -111,25 +146,20 @@ void setup() {
 
 void draw() {
   switch(gameState){
-    // case login_screen:
-    //
-    //   break;
-    case game_screen:
-      cp5.getController("Username").hide();
-      cp5.getController("Login").hide();
-      cp5.getController("Password").hide();
-      cp5.getController("New Account").hide();
-      cp5.getController("Connecting to server").hide();
-      // cp5.getController("").hide();
-      // password_textfield.hide();
-      // login_button.hide();
-      // new_account_button.hide();
-      // server_connection_label.hide();
-      // state.draw();
+    case login_screen:
+
       break;
-    // case result_screen:
-    //
-    //   break;
+    case game_screen:
+      cp5.getController("Password").hide();
+      password_textfield.hide();
+      login_button.hide();
+      new_account_button.hide();
+      server_connection_label.hide();
+      state.draw();
+      break;
+    case result_screen:
+
+      break;
 
     default:
       break;

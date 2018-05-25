@@ -23,12 +23,14 @@ public class Writer {
     // this.message = "";
   }
 
-  public void connect(){
+  public String connect(){
     try{
       out = new PrintWriter(socket.getOutputStream());
     }catch(Exception e){
       e.printStackTrace();
+      return "Server offline";
     }
+    return "Server online";
   }
 
   public void disconnect() throws IOException{
@@ -37,17 +39,22 @@ public class Writer {
 
   public void login(String user, String pass){
     try{
-      PrintWriter out = new PrintWriter(socket.getOutputStream());
       out.println("*login " + user + " " + pass);
       out.flush();
     }catch (Exception e) {
       e.printStackTrace();
-      System.exit(0);
+      System.exit(1);
     }
   }
 
 
   public void createAccount(String user, String password){
-
+    try{
+      out.println("*create_account " + user + " " + password);
+      out.flush();
+    }catch (Exception e){
+      e.printStackTrace();
+      System.exit(1);
+    }
   }
 }
