@@ -2,6 +2,8 @@
 -export ([start/0]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
 -import (timer, [send_after/3]).
+-import (creatures, [newCreature/1, updateCreature/3]).
+-import (players, [newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/4 ]).
 
 % O que será necessário manter no estado?
 % - Map User -> {PartidasVencidas, Nivel} -- Reset ao PartidasVencidas quando subir de nivel
@@ -97,25 +99,34 @@ newState(Player1, Player2) ->
     State.
 
 
+processKeyPressData( Data ) ->
+    %% Do your thing Nunaroo :P
+    %% Tem que retornar "w", "a" ou "d". Ou de alguma forma extrair algo do género
+    %% No updateWithKeyPress eu também estou a verificar a tecla
+    {}.
+
+
 gameManager(State)->
     % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     receive
         {keyPressed, Data, From} ->
             io:format("Entrei no keyPressed ~n"),
-            gameManager(State);
+            KeyPressed = processKeyPressData( Data ),
+            NewState = updateWithKeyPress(State, KeyPressed, From),
+            gameManager(NewState);
         {leave, From} ->
             {}
-
-
             ;
         refresh ->
             io:format("Entrei no ramo refresh ~n"),
-            gameManager(State)
+            NewState = update(State),
+            gameManager(NewState)
     end.
 
 refreshTimer (Pid) ->
-    Step = 1000,
+    FramesPerSecond = 40,
+    Step = 1000/FramesPerSecond,
     send_after(Step, Pid, refresh),
     receive
         after
@@ -124,131 +135,44 @@ refreshTimer (Pid) ->
     end
     .
 
+updateWithKeyPress(State, KeyPressed, From) ->
+    {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize } = State,
 
-
-
-
-
-%Player = {Position(vector), Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}
-newPlayer(Type) ->
-    %Constants
-    FrontAcceleration = 2.25,
-    AngularVelocity = 0.55,
-    MaxEnergy = 20,
-    EnergyWaste = 2,
-    EnergyGain = 0.2,
-    Drag = 0.1,
-    Size = 100,
-    %Variables
-    Position = {1,2},
-    Direction = 0,
-    Velocity = 0,
-    Energy = 20,
-
-    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
-
-
-%Creature = {Position(vector), Direction, DesiredDirection(vector), Size, Type, Velocity}
-newCreature(Type) ->
-    %Constants
-    Velocity = 1,
-    %Variables
-    Position = {1,2},
-    Direction = 0,
-    DesiredDirection = {3,4},
-    Size = 50,
-
-    {Position, Direction, DesiredDirection, Size, Type, Velocity}.
+    if
+        From == ID_P1 -> 
+            if
+                KeyPressed == "w" -> NewPlayer = accelerateForward(P1);
+                KeyPressed == "a" -> NewPlayer = turnLeft(P1);
+                KeyPressed == "d" -> NewPlayer = turnRight(P1)
+            end,
+            {{ID_P1, NewPlayer}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize };
+        From == ID_P2 -> 
+            if
+                KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
+                KeyPressed == "a" -> NewPlayer = turnLeft(P2);
+                KeyPressed == "d" -> NewPlayer = turnRight(P2)
+            end,
+            {{ID_P1, P1}, {ID_P2, NewPlayer}, GreenCreatures, RedCreatures, ArenaSize };
+        true -> 
+            io:format("Unkown id ~p in updateWithKeyPress", [From]),
+            {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize }
+    end.
 
 update(State) ->
-    {P1, P2, Creatures, Size} = State,
+    {{P1_ID, P1}, {P1_ID, P2}, GreenCreatures, RedCreatures, ArenaSize} = State,
+
+    %% Check for Colisions. And evaluate if there's energy to add
+    %% Check to see if Players are outside the arena walls.
+    
     {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
-    NewCreat = updateCreatures(Creatures, NewP1, NewP2),
-    {NewP1, NewP2, NewCreat, Size}.
-
-updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
-    {P1Position, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
-    {P2Position, P2Direction, P2Velocity, P2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size} = P2,
-    % P1PositionOffset = {0,0},
-    % P1EnergyToAdd = 0,
-    % P2PositionOffset = {0,0},
-    % P2EnergyToAdd = 0,
-
-    Distance = distanceBetween(P1Position, P2Position), %Porque é que precisamos disso?
-    VectorP1toP2 = subtractVectors(P1Position, P2Position),
-    DirectionVecP1 = {cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity},
-    DirectionVecP2 = {cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity},
-
-    NewP1Position = subtractVectors( VectorP1toP2, addPairs(P1Position, DirectionVecP1)),
-    NewP2Position = addPairs(VectorP1toP2, addPairs(P2Position, DirectionVecP2)),
-
-    NewP1Velocity = P1Velocity - P1Drag,
-    NewP2Velocity = P2Velocity - P2Drag,
-
-    NewP1Energy = P1Energy + P1EnergyGain + EnergyToAddP1,
-    NewP2Energy = P2Energy + P2EnergyGain + EnergyToAddP2,
-
-    {
-        {NewP1Position, P1Direction, NewP1Velocity, NewP1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size},
-        {NewP2Position, P2Direction, NewP2Velocity, NewP2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size}
-    }.
+    NewGreenCreatures = updateCreatures(GreenCreatures, NewP1, NewP2),
+    NewRedCreatures = updateCreatures(RedCreatures, NewP1, NewP2),
+    {NewP1, NewP2, NewGreenCreatures, NewRedCreatures, ArenaSize}.
 
 
 updateCreatures(Creatures, P1, P2) ->
     %lists:map(updateCreature, Creatures).
     [ updateCreature(Creature, P1, P2) || Creature <- Creatures].
-
-
-updateCreature(Creature, P1, P2) ->
-    {Position, Direction, DesiredDirection, Size, Type, Velocity} = Creature,
-    {PositionP1, _, _, _, _, _, _, _, _, _, _, _} = P1,
-    {PositionP2, _, _, _, _, _, _, _, _, _, _, _} = P2,
-
-    DistanceP1 = distanceBetween(Position, PositionP1),
-    DistanceP2 = distanceBetween(Position, PositionP2),
-
-    if
-        DistanceP1 < DistanceP2 -> NewDesiredDirection = subtractVectors(Position, PositionP1);
-        true -> NewDesiredDirection = subtractVectors(Position, PositionP2)
-    end,
-
-    NewDirection = multiplyVector(normalizeVector(halfWayVector(Direction, NewDesiredDirection)), Velocity),
-    NewPosition = addPairs(Position, NewDirection),
-
-    {NewPosition, NewDirection, NewDesiredDirection, Size, Type, Velocity}.
-
-
-multiplyVector(Vector, Mag) ->
-    {X,Y} = Vector,
-    { Mag * X, Mag * Y}.
-
-normalizeVector(Vector) ->
-    {X, Y} = Vector,
-    Divisor = sqrt( pow(X,2) + pow(Y,2) ),
-    { X/Divisor, Y/Divisor }.
-
-halfWayVector(Vector1, Vector2) ->
-    io:fwrite("Argumentos do halfWayVector : ~p",[Vector1]),
-    io:fwrite("Argumentos do halfWayVector : ~p",[Vector2]),
-    {X1, Y1} = Vector1,
-    {X2, Y2} = Vector2,
-    { (X1 + X2)/2, (Y1 + Y2)/2}.
-
-
-addPairs(Pair1, Pair2) ->
-    {X1, Y1} = Pair1,
-    {X2, Y2} = Pair2,
-    {X1 + X2, Y1 + Y2}.
-
-distanceBetween(Pos1, Pos2) ->
-    {X1, Y1} = Pos1,
-    {X2, Y2} = Pos2,
-    sqrt( pow(X1 - X2, 2) + pow(Y1 - Y2, 2)).
-
-subtractVectors(Pos1, Pos2) ->
-    {X1, Y1} = Pos1,
-    {X2, Y2} = Pos2,
-    {X2 - X1, Y2 - Y1}.
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
