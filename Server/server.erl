@@ -37,16 +37,25 @@ authenticator(Sock) ->
                     [User | Pass] = St,
                     io:format("User before  = ~p~n",[User]),
                     io:format("Pass before = ~p~n",[Pass]),
-                    case {string:len(User), string:len(Pass)} of
-                        {0, 0} ->
-                            U = string:strip(User, right, "\n"),
-                            P = string:strip(Pass, right, "\n");
-                        _ ->
+                    case string:len(User) of
+                        0 ->
                             U = 0,
                             P = 0,
                             gen_tcp:send(Sock,<<"login error\n">>),
-                            authenticator(Sock)
-                        end,
+                            authenticator(Sock);
+
+                        _ ->
+                            case string:len(Pass) of
+                                0 ->
+                                    U = 0,
+                                    P = 0,
+                                    gen_tcp:send(Sock,<<"login error\n">>),
+                                    authenticator(Sock);
+                                _ ->
+                                    U = string:strip(User, right, "\n"),
+                                    P = string:strip(Pass, right, "\n")
+                                end
+                    end,
                     case login(U,P) of
                         ok ->
                             gen_tcp:send(Sock, <<"login successful\n">>),
@@ -62,15 +71,24 @@ authenticator(Sock) ->
                     [User | Pass] = St,
                     io:format("User before = ~p~n",[User]),
                     io:format("Pass before = ~p~n",[Pass]),
-                    case {string:len(User), string:len(Pass)} of
-                        {0, 0} ->
-                            U = string:strip(User, right, "\n"),
-                            P = string:strip(Pass, right, "\n");
-                        _ ->
+                    case string:len(User) of
+                        0 ->
                             U = 0,
                             P = 0,
                             gen_tcp:send(Sock,<<"create_account error\n">>),
-                            authenticator(Sock)
+                            authenticator(Sock);
+
+                        _ ->
+                            case string:len(Pass) of
+                                0 ->
+                                    U = 0,
+                                    P = 0,
+                                    gen_tcp:send(Sock,<<"create_account error\n">>),
+                                    authenticator(Sock);
+                                _ ->
+                                    U = string:strip(User, right, "\n"),
+                                    P = string:strip(Pass, right, "\n")
+                                end
                     end,
                     case create_account(U,P) of
                         ok ->
