@@ -11,7 +11,7 @@ public class Reader extends Thread {
    Client.PlayState state;
    String message;
    Lock l;
-   Condition start;
+   Condition wait;
    boolean ready;
 
   private Reader(){
@@ -21,7 +21,7 @@ public class Reader extends Thread {
     this.message = "";
 
     this.l = null;
-    this.start = null;
+    this.wait = null;
     this.ready = false;
   }
 
@@ -32,7 +32,7 @@ public class Reader extends Thread {
     this.message = "";
 
     this.l = new ReentrantLock();
-    this.start = l.newCondition();
+    this.wait = l.newCondition();
     this.ready = false;
   }
 
@@ -90,18 +90,55 @@ public class Reader extends Thread {
         try{
           this.message = in.readLine();
 
-          if( this.message.equals("waiting for another player") ){
-            
+          if( this.message.equals("Waiting for your oponent") ){
+
 
           }
+        }catch(Exception e){
+          e.printStackTrace();
         }finally{
           this.l.unlock();
         }
 
       }
-    }catch (IOException e){
+    }catch (Exception e){
       e.printStackTrace();
     }
 
   }
 }
+
+
+//
+//
+//
+// {
+//   {
+//     { {1,2}, 0,0,20,1,2.25,0.55,20,2,0.2,0.1,100}, {"elisio",<0.76.0>}
+//   },
+//   {
+//     { {1,2}, 0,0,20,2,2.25,0.55,20,2,0.2,0.1,100}, {"\n",<0.60.0>}
+//   },
+//   [
+//     { {1,2}, 0, {3,4}, 50, g,1},
+//     { {1,2}, 0, {3,4}, 50, g,1}
+//   ],
+//   [],
+//   {1200,800}
+// }
+//
+//
+// {
+//   {
+//     {"elisio"}, { {1,2}, 0,0,20,1,2.25,0.55,20,2,0.2,0.1,100}
+//   },
+//   {
+//     {"\n"}, { {1,2}, 0,0,20,2,2.25,0.55,20,2,0.2,0.1,100}
+//   },
+//   [
+//     { {1,2}, 0, {3,4}, 50, g,1},
+//     { {1,2}, 0, {3,4}, 50, g,1}
+//   ],
+//   [],
+//   {1200,800}
+// }
