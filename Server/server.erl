@@ -86,8 +86,8 @@ authenticator(Sock) ->
                                     gen_tcp:send(Sock,<<"create_account error\n">>),
                                     authenticator(Sock);
                                 _ ->
-                                    U = string:strip(User, right, "\n"),
-                                    P = string:strip(Pass, right, "\n")
+                                    U = re:replace(User, "(^\\s+)|(\\s+$)", "", [global,{return,list}]),
+                                    P = re:replace(Pass, "(^\\s+)|(\\s+$)", "", [global,{return,list}])
                                 end
                     end,
                     case create_account(U,P) of

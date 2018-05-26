@@ -1,5 +1,5 @@
 -module (state).
--export ([start/0]).
+-export ([start/0, formatState/1]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
 -import (timer, [send_after/3]).
 -import (creatures, [newCreature/1, updateCreature/3]).
@@ -178,82 +178,73 @@ updateCreatures(Creatures, P1, P2) ->
     %lists:map(updateCreature, Creatures).
     [ updateCreature(Creature, P1, P2) || Creature <- Creatures].
 
-% formatState(State) ->
-%     %P1 and P2 contain the Player objects, Player1 and Player 2 contain {Username, UserProcess}
-%     %"elisio",1,2, 0,0,20,1,2.25,0.55,20,2,0.2,0.1,100;
-%     % "\n",1,2, 0,0,20,2,2.25,0.55,20,2,0.2,0.1,100;
-%     % 1;
-%     % 1,2 0, 3,4, 50, g,1;
-%     % 1,2, 0,3,4, 50, g,1;
-%     % 1;
-%     % 1,2, 0,3,4, 50, g,1;
-%     { {P1, {Username1, _}, {P2, Username2}, GreenCreatures, RedCreatures, Size} = State,
-%     {{P1x, P1y}, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
-%     {{P2x, P2y}, P2Direction, P2Velocity, P2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size} = P2,
-%     User1 = Username1 ++ "," ++
-%             integer_to_list(P1x) ++ "," ++
-%             integer_to_list(P1y) ++ "," ++
-%             integer_to_list(P1Direction) ++ "," ++
-%             integer_to_list(P1Velocity) ++ "," ++
-%             integer_to_list(P1Energy) ++ "," ++
-%             integer_to_list(P1Type) ++ "," ++
-%             integer_to_list(P1FrontAcceleration) ++ "," ++
-%             integer_to_list(P1AngularVelocity) ++ "," ++
-%             integer_to_list(P1MaxEnergy) ++ "," ++
-%             integer_to_list(P1EnergyWaste) ++ "," ++
-%             integer_to_list(P1EnergyGain) ++ "," ++
-%             integer_to_list(P1Drag) ++ "," ++
-%             integer_to_list(P1Size),
-%
-%     User2 = Username2 ++ "," ++
-%             integer_to_list(P2x) ++ "," ++
-%             integer_to_list(P2y) ++ "," ++
-%             integer_to_list(P2Direction) ++ "," ++
-%             integer_to_list(P2Velocity) ++ "," ++
-%             integer_to_list(P2Energy) ++ "," ++
-%             integer_to_list(P2Type) ++ "," ++
-%             integer_to_list(P2FrontAcceleration) ++ "," ++
-%             integer_to_list(P2AngularVelocity) ++ "," ++
-%             integer_to_list(P2MaxEnergy) ++ "," ++
-%             integer_to_list(P2EnergyWaste) ++ "," ++
-%             integer_to_list(P2EnergyGain) ++ "," ++
-%             integer_to_list(P2Drag) ++ "," ++
-%             integer_to_list(P2Size),
-%
-%     GreenCreaturesLen = length(GreenCreatures),
-%     GreenCreaturesAux = [formatCreatures(Creature) || Creature <- GreenCreatures]
-%     GreenCreaturesData = lists:foldl(fun(Elem, Accum) -> Accum ++ "," ++ Elem end, "", GreenCreaturesAux),
-%
-%     RedCreaturesLen = length(RedCreatures),
-%     RedCreaturesAux = [formatCreatures(Creature) || Creature <- RedCreatures],
-%     RedCreaturesData = lists:foldl(fun(Elem, Accum) -> Accum ++ "," ++ Elem end, "", RedCreaturesAux),
-%
-%     Result = User1 ++ ";" ++
-%              User2 ++ ";" ++
-%              integer_to_list(GreenCreaturesLen) ++ ";" ++
-%              GreenCreaturesData ++ ";" ++
-%              integer_to_list(RedCreaturesLen) ++ ";" ++
-%              RedCreaturesData,
-%     Result.
-%
-% formatCreatures(Creature) ->
-%     {{X, Y}, Direction, {Dx, Dy}, Size, Type, Velocity} = Creature,
-%     Result = integer_to_list(X) ++ "," ++
-%              integer_to_list(Y) ++ "," ++
-%              integer_to_list(Direction) ++ "," ++
-%              integer_to_list(Dx) ++ "," ++
-%              integer_to_list(Size) ++ "," ++
-%              Type ++ "," ++
-%              integer_to_list(Velocity).
-%
-% formatPlayer(Player) ->
-%     {{P1x, P1y}, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
-%
-%
-%
-%
-%
-%
+formatState(State) ->
+    %P1 and P2 contain the Player objects, Player1 and Player 2 contain {Username, UserProcess}
+    %"elisio",1,2, 0,0,20,1,2.25,0.55,20,2,0.2,0.1,100;
+    % "\n",1,2, 0,0,20,2,2.25,0.55,20,2,0.2,0.1,100;
+    % 1;
+    % 1,2 0, 3,4, 50, g,1;
+    % 1,2, 0,3,4, 50, g,1;
+    % 1;
+    % 1,2, 0,3,4, 50, g,1;
+    { {P1, {Username1, _}, {P2, Username2}, GreenCreatures, RedCreatures, Size}} = State,
+    User1 = formatPlayer(P1, Username1),
+    User2 = formatPlayer(P2, Username2),
+
+    F = fun(Elem, Accum) ->
+        if
+            Accum == "" ->
+                Elem;
+            true ->
+                Accum ++ ";" ++ Elem
+        end
+    end,
+
+    GreenCreaturesLen = length(GreenCreatures),
+    GreenCreaturesAux = [formatCreatures(Creature) || Creature <- GreenCreatures],
+    GreenCreaturesData = lists:foldl(F, "", GreenCreaturesAux),
+
+    RedCreaturesLen = length(RedCreatures),
+    RedCreaturesAux = [formatCreatures(Creature) || Creature <- RedCreatures],
+    RedCreaturesData = lists:foldl(F, "", RedCreaturesAux),
+
+    Result = User1 ++ ";" ++
+             User2 ++ ";" ++
+             integer_to_list(GreenCreaturesLen) ++ ";" ++
+             GreenCreaturesData ++ ";" ++
+             integer_to_list(RedCreaturesLen) ++ ";" ++
+             RedCreaturesData,
+    Result.
+
+formatCreatures(Creature) ->
+    {{X, Y}, Direction, {Dx, Dy}, Size, Type, Velocity} = Creature,
+    Result = integer_to_list(X) ++ "," ++
+             integer_to_list(Y) ++ "," ++
+             integer_to_list(Direction) ++ "," ++
+             integer_to_list(Dx) ++ "," ++
+             integer_to_list(Dy) ++ "," ++
+             integer_to_list(Size) ++ "," ++
+             Type ++ "," ++
+             integer_to_list(Velocity),
+    Result.
+
+formatPlayer(P1, Username1) ->
+    {{P1x, P1y}, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
+    User1 = Username1 ++ "," ++
+            integer_to_list(P1x) ++ "," ++
+            integer_to_list(P1y) ++ "," ++
+            integer_to_list(P1Direction) ++ "," ++
+            integer_to_list(P1Velocity) ++ "," ++
+            integer_to_list(P1Energy) ++ "," ++
+            integer_to_list(P1Type) ++ "," ++
+            integer_to_list(P1FrontAcceleration) ++ "," ++
+            integer_to_list(P1AngularVelocity) ++ "," ++
+            integer_to_list(P1MaxEnergy) ++ "," ++
+            integer_to_list(P1EnergyWaste) ++ "," ++
+            integer_to_list(P1EnergyGain) ++ "," ++
+            integer_to_list(P1Drag) ++ "," ++
+            integer_to_list(P1Size),
+    User1.
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
