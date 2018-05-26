@@ -17,7 +17,7 @@
 %% IMPORTANT note about the User
 %% In the State we save a pair that represents the user: {PlayerAvartar, UserObject}
 %%  - The first element represents the PlayerAvatar; referenced as (P#)
-%%  - The second Element is another pair representing the User {Username, UserProcess}:
+%%  - The second Element is another pair representing the User {Username, UserProcess}: referenced as whole as (ID_P#)
 %%     -- The first element is the User's username;   referenced as (U#)
 %%     -- The first element is the User's Process ID; referenced as (PID_P#)
 
@@ -85,10 +85,13 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
     end
 .
 
+
+
 newState(Player1, Player2) ->
     State = { {newPlayer(1), Player1}, {newPlayer(2), Player2}, [newCreature(g), newCreature(g)], [ ], {1200,800}},
     io:fwrite("Estado: ~p ~n", [State]),
     State.
+
 
 
 processKeyPressData( Data ) ->
@@ -96,6 +99,7 @@ processKeyPressData( Data ) ->
     %% Tem que retornar "w", "a" ou "d". Ou de alguma forma extrair algo do género
     %% No updateWithKeyPress eu também estou a verificar a tecla
     {}.
+
 
 
 gameManager(State)->
@@ -116,6 +120,8 @@ gameManager(State)->
             gameManager(NewState)
     end.
 
+
+
 refreshTimer (Pid) ->
     FramesPerSecond = 40,
     Step = 1000/FramesPerSecond,
@@ -127,6 +133,8 @@ refreshTimer (Pid) ->
     end
     .
 
+
+
 updateWithKeyPress(State, KeyPressed, From) ->
     {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize } = State,
 
@@ -137,18 +145,20 @@ updateWithKeyPress(State, KeyPressed, From) ->
                 KeyPressed == "a" -> NewPlayer = turnLeft(P1);
                 KeyPressed == "d" -> NewPlayer = turnRight(P1)
             end,
-            {{NewPlayer, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize };
+            update({{NewPlayer, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize });
         From == PID_P2 -> 
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P2);
                 KeyPressed == "d" -> NewPlayer = turnRight(P2)
             end,
-            {{P1, {U1,PID_P1}}, {NewPlayer, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize };
+            update({{P1, {U1,PID_P1}}, {NewPlayer, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize });
         true -> 
             io:format("Unkown id ~p in updateWithKeyPress", [From]),
-            {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }
+            update({{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize })
     end.
+
+
 
 checkLosses(State) ->
     %% Determines if a player if lost
@@ -166,6 +176,8 @@ checkLosses(State) ->
         WentOutsideBoard == true -> {true, PlayerOutsideID};
         true -> {false, none}
     end.
+
+
 
 update(State) ->
     {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize} = State,
@@ -195,6 +207,8 @@ update(State) ->
     % Return New State
     { {NewP1, {U1,PID_P1}}, {NewP2,{U2,PID_P2}}, NewGreenCreatures, NewRedCreatures, ArenaSize }.
 
+
+
 checkGreenColisions( Player, GreenCreatures ) ->
     {Creature1, Creature2} = GreenCreatures,
     Colided1 = checkColision(Player, Creature1),
@@ -205,6 +219,8 @@ checkGreenColisions( Player, GreenCreatures ) ->
         not Colided1 and Colided2 -> 1;
         true -> 0
     end.
+
+
 
 checkOutsideArena(P1, P2, ArenaSize) ->
     {{P1Position, _, _, _, _, _, _, _, _, _, _, _}, ID_P1} = P1,
@@ -217,6 +233,8 @@ checkOutsideArena(P1, P2, ArenaSize) ->
         (P2_X < 0) or (P2_X < ArenaX) or (P2_Y < 0) or (P2_Y < ArenaY) -> {true, ID_P2}; 
         true -> {false, none}
     end.
+
+
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
