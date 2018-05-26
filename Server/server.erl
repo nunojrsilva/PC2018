@@ -109,7 +109,7 @@ userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
-            GameManager ! {keyPressed, Data, self()},
+            GameManager ! {keyPressed, Data, self()}, % Precisamos de saber quem foi que premiu a tecla!
             userOnGame(Sock, GameManager);
         {tcp_closed, _} ->
             GameManager ! {leave, self()};

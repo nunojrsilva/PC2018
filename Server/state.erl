@@ -88,8 +88,12 @@ estado(Users_Score, Waiting) ->
             ;
         {tops, From} ->
             List = maps:to_list(Users_Score),
-            SortedList = lists:keysort(2, List)
-
+            GamesF = fun ({_, {GamesWon1, _}}, {_, {GamesWon2, _}}) -> GamesWon1 > GamesWon2 end,
+            LevelsF = fun ({_, {_, Level1}}, {_, {_, Level2}}) -> Level1 > Level2 end,
+            GamesTop = lists:sort(GamesF, List),
+            LevelsTop = lists:sort(LevelsF, List),
+            From ! {tops, {GamesTop, LevelsTop}},
+            estado (Users_Score, Waiting)
     end
 .
 
@@ -139,21 +143,21 @@ updateWithKeyPress(State, KeyPressed, From) ->
     {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize } = State,
 
     if
-        From == ID_P1 -> 
+        From == ID_P1 ->
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P1);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P1);
                 KeyPressed == "d" -> NewPlayer = turnRight(P1)
             end,
             {{ID_P1, NewPlayer}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize };
-        From == ID_P2 -> 
+        From == ID_P2 ->
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P2);
                 KeyPressed == "d" -> NewPlayer = turnRight(P2)
             end,
             {{ID_P1, P1}, {ID_P2, NewPlayer}, GreenCreatures, RedCreatures, ArenaSize };
-        true -> 
+        true ->
             io:format("Unkown id ~p in updateWithKeyPress", [From]),
             {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize }
     end.
@@ -163,7 +167,7 @@ update(State) ->
 
     %% Check for Colisions. And evaluate if there's energy to add
     %% Check to see if Players are outside the arena walls.
-    
+
     {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
     NewGreenCreatures = updateCreatures(GreenCreatures, NewP1, NewP2),
     NewRedCreatures = updateCreatures(RedCreatures, NewP1, NewP2),
