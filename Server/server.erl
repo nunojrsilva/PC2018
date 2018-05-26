@@ -60,7 +60,7 @@ authenticator(Sock) ->
                     end
                 ;
                 _ ->
-                    gen_tcp:send(Sock,<<"No match for that option ~n">>),
+                    gen_tcp:send(Sock,<<"No match for that option \n">>),
                     io:format("dados ~p~n",[Data]),
                     authenticator(Sock)
             end
@@ -72,9 +72,8 @@ authenticator(Sock) ->
 
 user(Sock, Username) ->
     state ! {ready, Username, self()},
-    gen_tcp:send(Sock, <<"Waiting for the server\n">>),
-    io:format("Bloquear à espera de go!"),
-    io:format("PidState = ~p ~n", [state]),
+    gen_tcp:send(Sock, <<"Waiting for your oponent\n">>),
+    io:format("Vou bloquear à espera de go!~n"),
     receive % Bloqueia à espera da resposta do servidor
         {go, GameManager} ->
             io:format("Recebi go , vou para o GameManager"),
@@ -88,8 +87,7 @@ userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
-            io:format("Recebi coisas do cliente ~p ~n",[Data]),
-            GameManager ! {line, Data, self()},
+            GameManager ! {keyPressed, Data, self()},
             userOnGame(Sock, GameManager);
         {tcp_closed, _} ->
             GameManager ! {leave, self()};

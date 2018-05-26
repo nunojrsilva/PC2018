@@ -1,6 +1,7 @@
 -module (state).
 -export ([start/0]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
+-import (timer, [send_after/3]).
 
 % O que será necessário manter no estado?
 % - Map User -> {PartidasVencidas, Nivel} -- Reset ao PartidasVencidas quando subir de nivel
@@ -17,18 +18,16 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
         {ready, Username, UserProcess} -> % Se há um user pronto a jogar, temos que ver qual é o seu nivel
             io:format("Recebi ready de ~p ~n", [Username]),
             case maps:find(Username, Users_Score) of
-                {ok, {_, UserLevel }} -> % Descobrir nivel do User
+                {ok, {_, UserLevel }} -> % Descobrir nivel do User {GamesWon, UserLevel}
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
                              estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopLevels, TopScore); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
-                            Game = spawn( fun() -> gameManager ({Username, UserProcess}, {UsernameQueue, UserProcessQueue}) end ),
-                            io:format("Vou enviar go"),
-                            %UserProcess ! UserProcessQueue  ! {go, Game, self()},
-                            UserProcess ! {go, Game},
-                            UserProcessQueue ! {go, Game},
+                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end ),
+                            Timer = spawn( fun() -> refreshTimer(Game) end),
+                            UserProcess ! UserProcessQueue  ! {go, Game},
                             estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
                 ;
@@ -41,45 +40,82 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopLevels, TopScore); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
-                            Game = spawn( fun() -> gameManager({Username, UserProcess}, {UsernameQueue, UserProcessQueue}) end),
-                            io:format("Vou enviar go"),
-                            io:format("Self = ~p ~n", [self()]),
-                            %UserProcess ! UserProcessQueue ! {go, Game, self()},
-                            UserProcess ! {go, Game},
-                            UserProcessQueue ! {go, Game},
+                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end),
+                            Timer = spawn( fun() -> refreshTimer(Game) end),
+                            UserProcess ! UserProcessQueue ! {go, Game},
                             estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
                     end
                 end
-            ;
-        {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
-            Result
+
+        % {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
+        %     {{Username1, Score1}, {Username2, Score2}} = Result,
+        %
+        %     % Atualização da Pontuação do User1
+        %
+        %     {ok, {GamesWon1, UserLevel1} } = maps:find(Username1, Users_Score),
+        %     {ok, {GamesWon2, USer}}
+        %
+        %     if
+        %         Score1 > Score2 ->
+        %             NewGamesWon1 = GamesWon1 + 1,
+        %             if
+        %                 NewGamesWon1 > UserLevel1 ->
+        %                     NewUserLevel1 = UserLevel1 + 1,
+        %             true ->
+        %                 NewUserLevel1 = UserLevel1
+        %             end
+        %
+        %         true ->
+        %             NewGamesWon1 = GamesWon1,
+        %             NewUserLevel1 = UserLevel1
+        %     end,
+        %     NewMap = maps:put(Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
+        %     estado (NewMap, Waiting, TopLevels, TopScore); % Vale a pena guardar TopLEvels e TopScore?
+
     end
 .
 
+newState(Player1, Player2) ->
+    State = { {newPlayer(1), Player1}, {newPlayer(2), Player2}, [newCreature(g), newCreature(g)], [ ], {1200,800}},
+    io:fwrite("Estado: ~p ~n", [State]),
+    State.
 
-gameManager(PlayerOne, PlayerTwo)-> % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
-    %io:fwrite("GameManager ativo entre ~p",[]),
-    {Username1, UserProcess1} = PlayerOne,
-    {Username2, UserProcess2} = PlayerTwo,
-    Creatures = 12,
-    Estado = {newPlayer(1), newPlayer(2),  [newCreature(g), newCreature(g)], {1200,800}},
-    io:fwrite("Estado: ~p", [Estado]),
+
+processKeyPressData( Data ) ->
+    %% Do your thing Nunaroo :P
+    %% Tem que retornar "w", "a" ou "d". Ou de alguma forma extrair algo do género
+    %% No updateWithKeyPress eu também estou a verificar a tecla
+    {}.
+
+
+gameManager(State)->
+    % Como calcular a pontuação?
+    % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     receive
-        {line, Data, UserProcess1} ->
-            io:fwrite("Recebi ~p ~n",[Data]),
-            io:fwrite("De ~p ~n", [Username1]);
-        {line, Data, UserProcess2} ->
-            io:fwrite("Recebi ~p ~n",[Data]),
-            io:fwrite("De ~p ~n", [Username2])
+        {keyPressed, Data, From} ->
+            io:format("Entrei no keyPressed ~n"),
+            KeyPressed = processKeyPressData( Data ),
+            NewState = updateWithKeyPress(State, KeyPressed, From),
+            gameManager(NewState);
+        {leave, From} ->
+            {}
+            ;
+        refresh ->
+            io:format("Entrei no ramo refresh ~n"),
+            NewState = update(State),
+            gameManager(NewState)
+    end.
 
+refreshTimer (Pid) ->
+    FramesPerSecond = 40,
+    Step = 1000/FramesPerSecond,
+    send_after(Step, Pid, refresh),
+    receive
+        after
+            1000 ->
+                refreshTimer(Pid)
     end
     .
-    %io:fwrite("Estado depois de update: ~p", [update(Estado)])
-
-
-
-
-
 
 %Player = {Position(vector), Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}
 newPlayer(Type) ->
@@ -112,11 +148,66 @@ newCreature(Type) ->
 
     {Position, Direction, DesiredDirection, Size, Type, Velocity}.
 
+
+updateWithKeyPress(State, KeyPressed, From) ->
+    {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize } = State,
+
+    if
+        From == ID_P1 -> 
+            if
+                KeyPressed == "w" -> NewPlayer = accelerateForward(P1);
+                KeyPressed == "a" -> NewPlayer = turnLeft(P1);
+                KeyPressed == "d" -> NewPlayer = turnRight(P1)
+            end,
+            {{ID_P1, NewPlayer}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize };
+        From == ID_P2 -> 
+            if
+                KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
+                KeyPressed == "a" -> NewPlayer = turnLeft(P2);
+                KeyPressed == "d" -> NewPlayer = turnRight(P2)
+            end,
+            {{ID_P1, P1}, {ID_P2, NewPlayer}, GreenCreatures, RedCreatures, ArenaSize };
+        true -> 
+            io:format("Unkown id ~p in updateWithKeyPress", [From]),
+            {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize }
+    end.
+
+accelerateForward(Player) ->
+    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = Player,
+
+    if
+        Energy >= EnergyWaste ->
+            NewVelocity = Velocity + FrontAcceleration,
+            NewEnergy   = Energy - EnergyWaste
+    end,
+    {Position, Direction, NewVelocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
+
+turnRight(Player) ->
+    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = Player,
+
+    if
+        Energy >= EnergyWaste ->
+            NewDirection = Direction + AngularVelocity,
+            NewEnergy   = Energy - EnergyWaste
+    end,
+    {Position, NewDirection, Velocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
+
+turnLeft(Player) ->
+    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = Player,
+
+    if
+        Energy >= EnergyWaste ->
+            NewDirection = Direction - AngularVelocity,
+            NewEnergy   = Energy - EnergyWaste
+    end,
+    {Position, NewDirection, Velocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
+
 update(State) ->
-    {P1, P2, Creatures, Size} = State,
+    {{P1_ID, P1}, {P1_ID, P2}, Creatures, Size} = State,
     {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
     NewCreat = updateCreatures(Creatures, NewP1, NewP2),
     {NewP1, NewP2, NewCreat, Size}.
+
 
 updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
     {P1Position, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
@@ -128,8 +219,8 @@ updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
 
     Distance = distanceBetween(P1Position, P2Position), %Porque é que precisamos disso?
     VectorP1toP2 = subtractVectors(P1Position, P2Position),
-    DirectionVecP1 = {cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity},
-    DirectionVecP2 = {cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity},
+    DirectionVecP1 = multiplyVector({cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity}, Distance),
+    DirectionVecP2 = multiplyVector({cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity}, Distance),
 
     NewP1Position = subtractVectors( VectorP1toP2, addPairs(P1Position, DirectionVecP1)),
     NewP2Position = addPairs(VectorP1toP2, addPairs(P2Position, DirectionVecP2)),
@@ -152,7 +243,7 @@ updateCreatures(Creatures, P1, P2) ->
 
 
 updateCreature(Creature, P1, P2) ->
-    {Position, Direction, DesiredDirection, Size, Type, Velocity} = Creature,
+    {Position, Direction, _, Size, Type, Velocity} = Creature,
     {PositionP1, _, _, _, _, _, _, _, _, _, _, _} = P1,
     {PositionP2, _, _, _, _, _, _, _, _, _, _, _} = P2,
 
