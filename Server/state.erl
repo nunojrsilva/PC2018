@@ -14,6 +14,13 @@
 % trate da parte do jogo em si e que depois comunique no final o resultado certo? Esse processo comunica por mensagens com os processos user dos clientes
 %
 
+%% IMPORTANT note about the User
+%% In the State we save a pair that represents the user: {PlayerAvartar, UserObject}
+%%  - The first element represents the PlayerAvatar; referenced as (P#)
+%%  - The second Element is another pair representing the User {Username, UserProcess}:
+%%     -- The first element is the User's username;   referenced as (U#)
+%%     -- The first element is the User's Process ID; referenced as (PID_P#)
+
 
 estado(Users_Score, Waiting, TopLevels, TopScore) ->
     io:format("Entrei no estado ~n"),
