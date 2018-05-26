@@ -81,21 +81,29 @@ newState(Player1, Player2) ->
     State.
 
 
+processKeyPressData( Data ) ->
+    %% Do your thing Nunaroo :P
+    %% Tem que retornar "w", "a" ou "d". Ou de alguma forma extrair algo do género
+    %% No updateWithKeyPress eu também estou a verificar a tecla
+    {}.
+
+
 gameManager(State)->
     % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     receive
         {keyPressed, Data, From} ->
             io:format("Entrei no keyPressed ~n"),
-            gameManager(State);
+            KeyPressed = processKeyPressData( Data ),
+            NewState = updateWithKeyPress(State, KeyPressed, From),
+            gameManager(NewState);
         {leave, From} ->
             {}
-
-
             ;
         refresh ->
             io:format("Entrei no ramo refresh ~n"),
-            gameManager(State)
+            NewState = update(State),
+            gameManager(NewState)
     end.
 
 refreshTimer (Pid) ->
@@ -107,11 +115,6 @@ refreshTimer (Pid) ->
                 refreshTimer(Pid)
     end
     .
-
-
-
-
-
 
 %Player = {Position(vector), Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}
 newPlayer(Type) ->
@@ -144,11 +147,66 @@ newCreature(Type) ->
 
     {Position, Direction, DesiredDirection, Size, Type, Velocity}.
 
+
+updateWithKeyPress(State, KeyPressed, From) ->
+    {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize } = State,
+
+    if
+        From == ID_P1 -> 
+            if
+                KeyPressed == "w" -> NewPlayer = accelerateForward(P1);
+                KeyPressed == "a" -> NewPlayer = turnLeft(P1);
+                KeyPressed == "d" -> NewPlayer = turnRight(P1)
+            end,
+            {{ID_P1, NewPlayer}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize };
+        From == ID_P2 -> 
+            if
+                KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
+                KeyPressed == "a" -> NewPlayer = turnLeft(P2);
+                KeyPressed == "d" -> NewPlayer = turnRight(P2)
+            end,
+            {{ID_P1, P1}, {ID_P2, NewPlayer}, GreenCreatures, RedCreatures, ArenaSize };
+        true -> 
+            io:format("Unkown id ~p in updateWithKeyPress", [From]),
+            {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize }
+    end.
+
+accelerateForward(Player) ->
+    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = Player,
+
+    if
+        Energy >= EnergyWaste ->
+            NewVelocity = Velocity + FrontAcceleration,
+            NewEnergy   = Energy - EnergyWaste
+    end,
+    {Position, Direction, NewVelocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
+
+turnRight(Player) ->
+    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = Player,
+
+    if
+        Energy >= EnergyWaste ->
+            NewDirection = Direction + AngularVelocity,
+            NewEnergy   = Energy - EnergyWaste
+    end,
+    {Position, NewDirection, Velocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
+
+turnLeft(Player) ->
+    {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size} = Player,
+
+    if
+        Energy >= EnergyWaste ->
+            NewDirection = Direction - AngularVelocity,
+            NewEnergy   = Energy - EnergyWaste
+    end,
+    {Position, NewDirection, Velocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
+
 update(State) ->
-    {P1, P2, Creatures, Size} = State,
+    {{P1_ID, P1}, {P1_ID, P2}, Creatures, Size} = State,
     {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
     NewCreat = updateCreatures(Creatures, NewP1, NewP2),
     {NewP1, NewP2, NewCreat, Size}.
+
 
 updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
     {P1Position, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
@@ -160,8 +218,8 @@ updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
 
     Distance = distanceBetween(P1Position, P2Position), %Porque é que precisamos disso?
     VectorP1toP2 = subtractVectors(P1Position, P2Position),
-    DirectionVecP1 = {cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity},
-    DirectionVecP2 = {cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity},
+    DirectionVecP1 = multiplyVector({cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity}, Distance),
+    DirectionVecP2 = multiplyVector({cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity}, Distance),
 
     NewP1Position = subtractVectors( VectorP1toP2, addPairs(P1Position, DirectionVecP1)),
     NewP2Position = addPairs(VectorP1toP2, addPairs(P2Position, DirectionVecP2)),
