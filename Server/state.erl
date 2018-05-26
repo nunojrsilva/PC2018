@@ -203,10 +203,15 @@ turnLeft(Player) ->
     {Position, NewDirection, Velocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
 
 update(State) ->
-    {{P1_ID, P1}, {P1_ID, P2}, Creatures, Size} = State,
+    {{P1_ID, P1}, {P1_ID, P2}, GreenCreatures, RedCreatures, ArenaSize} = State,
+
+    %% Check for Colisions. And evaluate if there's energy to add
+    %% Check to see if Players are outside the arena walls.
+    
     {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
-    NewCreat = updateCreatures(Creatures, NewP1, NewP2),
-    {NewP1, NewP2, NewCreat, Size}.
+    NewGreenCreatures = updateCreatures(GreenCreatures, NewP1, NewP2),
+    NewRedCreatures = updateCreatures(RedCreatures, NewP1, NewP2),
+    {NewP1, NewP2, NewGreenCreatures, NewRedCreatures, ArenaSize}.
 
 
 updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
