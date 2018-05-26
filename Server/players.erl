@@ -54,7 +54,7 @@ turnLeft(Player) ->
 
 
 
-updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
+updatePlayers(P1, P2, GreenColisions1, GreenColisions2) ->
     {P1Position, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
     {P2Position, P2Direction, P2Velocity, P2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size} = P2,
     % P1PositionOffset = {0,0},
@@ -73,8 +73,8 @@ updatePlayers(P1, P2, EnergyToAddP1, EnergyToAddP2) ->
     NewP1Velocity = P1Velocity - P1Drag,
     NewP2Velocity = P2Velocity - P2Drag,
 
-    NewP1Energy = P1Energy + P1EnergyGain + EnergyToAddP1,
-    NewP2Energy = P2Energy + P2EnergyGain + EnergyToAddP2,
+    NewP1Energy = P1Energy + P1EnergyGain + GreenColisions1,
+    NewP2Energy = P2Energy + P2EnergyGain + GreenColisions2,
 
     {
         {NewP1Position, P1Direction, NewP1Velocity, NewP1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size},

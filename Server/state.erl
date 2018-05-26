@@ -4,6 +4,7 @@
 -import (timer, [send_after/3]).
 -import (creatures, [newCreature/1, updateCreature/3]).
 -import (players, [newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/4 ]).
+-import (vectors2d, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 
 % O que será necessário manter no estado?
 % - Map User -> {PartidasVencidas, Nivel} -- Reset ao PartidasVencidas quando subir de nivel
@@ -142,17 +143,89 @@ updateWithKeyPress(State, KeyPressed, From) ->
             {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize }
     end.
 
+checkLosses(State) ->
+    %% Determines if a player if lost
+    %% Which means determining if a player as touched a red creature,
+    %% or if a player as gone outside the board
+    %% returns a pair where the first element is a boolean value saying if someon loss
+    %% the second value is the id of the player o lost.
+    %% if no player lost then the second value is `none`
+    %% eg.: {true, PlayerID}, or {false, none}. Where PlayerID is some value that represents the player
+    {{ID_P1, P1}, {ID_P2, P2}, _, RedCreatures, ArenaSize} = State,
+    { HasColisions, PlayerColidedID } = checkRedColisions({ID_P1, P1}, {ID_P2, P2}, RedCreatures),
+    { WentOutsideBoard, PlayerOutsideID} = checkOutsideArena({ID_P1, P1}, {ID_P2, P2}, ArenaSize),
+    if
+        HasColisions == true -> {true, PlayerColidedID};
+        WentOutsideBoard == true -> {true, PlayerOutsideID};
+        true -> {false, none}
+    end.
+
 update(State) ->
-    {{P1_ID, P1}, {P1_ID, P2}, GreenCreatures, RedCreatures, ArenaSize} = State,
+    {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize} = State,
 
-    %% Check for Colisions. And evaluate if there's energy to add
-    %% Check to see if Players are outside the arena walls.
-    
-    {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
-    NewGreenCreatures = updateCreatures(GreenCreatures, NewP1, NewP2),
-    NewRedCreatures = updateCreatures(RedCreatures, NewP1, NewP2),
-    {NewP1, NewP2, NewGreenCreatures, NewRedCreatures, ArenaSize}.
+    GreenColisions_P1 = checkGreenColisions(P1, GreenCreatures),
+    GreenColisions_P2 = checkGreenColisions(P2, GreenCreatures),
 
+    {NewP1, NewP2} = updatePlayers(P1, P2, GreenColisions_P1, GreenColisions_P2),
+
+    %% Teleport Greens with updateCreatures
+    NewGreenCreatures = updateCreatures(GreenCreatures, P1, P2),
+    NewRedCreatures = updateCreatures(RedCreatures, P1, P2),
+
+    { {ID_P1, NewP1}, {ID_P2, NewP2}, NewGreenCreatures, NewRedCreatures, ArenaSize }.
+
+checkGreenColisions( Player, GreenCreatures ) ->
+    {Creature1, Creature2} = GreenCreatures,
+    Colided1 = checkColision(Player, Creature1),
+    Colided2 = checkColision(Player, Creature2),
+    if 
+        Colided1 and Colided2 -> 2;
+        Colided1 and not Colided2 -> 1;
+        not Colided1 and Colided2 -> 1;
+        true -> 0
+    end.
+
+checkOutsideArena(P1, P2, ArenaSize) ->
+    {ID_P1, {P1Position, _, _, _, _, _, _, _, _, _, _, _}} = P1,
+    {ID_P2, {P2Position, _, _, _, _, _, _, _, _, _, _, _}} = P2,
+    {ArenaX, ArenaY} = ArenaSize,
+    { P1_X, P1_Y } = P1Position,
+    { P2_X, P2_Y } = P2Position,
+    if
+        (P1_X < 0) or (P1_X < ArenaX) or (P1_Y < 0) or (P1_Y < ArenaY) -> {true, ID_P1}; 
+        (P2_X < 0) or (P2_X < ArenaX) or (P2_Y < 0) or (P2_Y < ArenaY) -> {true, ID_P2}; 
+        true -> {false, none}
+    end.
+
+checkRedColisions( Player1, Player2, RedCreatures ) ->
+    { ID_P1, P1 } = Player1,
+    { ID_P2, P2 } = Player2,
+    ColisionsP1 = checkColision(P1, RedCreatures),
+    ColisionsP2 = checkColision(P2, RedCreatures),
+    if
+        ColisionsP1 == true -> {true, ID_P1};
+        ColisionsP2 == true -> {true, ID_P2};
+        true -> {false, none}
+    end.
+
+checkColisionsList( Player, Creatures ) ->
+    if
+        Creatures == [] -> false;
+        true -> 
+            [Creature | T ] = Creatures,
+            checkColision(Player, Creature) or checkColisionsList(Player, T)
+    end.
+
+
+checkColision( Player, Creature ) ->
+    {PlayerPosition, _, _, _, _, _, _, _, _, _, _, PlayerSize} = Player,
+    {CreaturePosition, _, _, CreatureSize, _, _} = Creature,
+
+    Distance = distanceBetween(PlayerPosition, CreaturePosition),
+    if
+        Distance < (PlayerSize/2 + CreatureSize/2) -> true;
+        true -> false
+    end.
 
 updateCreatures(Creatures, P1, P2) ->
     %lists:map(updateCreature, Creatures).
