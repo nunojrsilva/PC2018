@@ -1,5 +1,5 @@
 -module(creatures).
--export([newCreature/1, updateCreature/3]).
+-export([newCreature/1, updateCreature/3, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/3]).
 -import(vectors2D, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 
 
@@ -35,3 +35,37 @@ updateCreature(Creature, P1, P2) ->
 
     {NewPosition, NewDirection, NewDesiredDirection, Size, Type, Velocity}.
 
+
+checkRedColisions( Player1, Player2, RedCreatures ) ->
+    { ID_P1, P1 } = Player1,
+    { ID_P2, P2 } = Player2,
+    ColisionsP1 = checkColision(P1, RedCreatures),
+    ColisionsP2 = checkColision(P2, RedCreatures),
+    if
+        ColisionsP1 == true -> {true, ID_P1};
+        ColisionsP2 == true -> {true, ID_P2};
+        true -> {false, none}
+    end.
+
+checkColisionsList( Player, Creatures ) ->
+    if
+        Creatures == [] -> false;
+        true -> 
+            [Creature | T ] = Creatures,
+            checkColision(Player, Creature) or checkColisionsList(Player, T)
+    end.
+
+
+checkColision( Player, Creature ) ->
+    {PlayerPosition, _, _, _, _, _, _, _, _, _, _, PlayerSize} = Player,
+    {CreaturePosition, _, _, CreatureSize, _, _} = Creature,
+
+    Distance = distanceBetween(PlayerPosition, CreaturePosition),
+    if
+        Distance < (PlayerSize/2 + CreatureSize/2) -> true;
+        true -> false
+    end.
+
+updateCreaturesList(Creatures, P1, P2) ->
+    %lists:map(updateCreature, Creatures).
+    [ updateCreature(Creature, P1, P2) || Creature <- Creatures].

@@ -2,7 +2,7 @@
 -export ([start/0]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
 -import (timer, [send_after/3]).
--import (creatures, [newCreature/1, updateCreature/3]).
+-import (creatures, [newCreature/1, updateCreature/3, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/3]).
 -import (players, [newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/4 ]).
 -import (vectors2d, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 
@@ -162,16 +162,30 @@ checkLosses(State) ->
 
 update(State) ->
     {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize} = State,
-
+    {Green1, Green2} = GreenCreatures,
+    
+    % Update Players
     GreenColisions_P1 = checkGreenColisions(P1, GreenCreatures),
     GreenColisions_P2 = checkGreenColisions(P2, GreenCreatures),
-
     {NewP1, NewP2} = updatePlayers(P1, P2, GreenColisions_P1, GreenColisions_P2),
 
-    %% Teleport Greens with updateCreatures
-    NewGreenCreatures = updateCreatures(GreenCreatures, P1, P2),
-    NewRedCreatures = updateCreatures(RedCreatures, P1, P2),
+    % Update Green Creatures
+    Green1Colided = checkColision(P1, Green1) or checkColision(P2, Green1),
+    Green2Colided = checkColision(P1, Green2) or checkColision(P2, Green2),
+    if
+        Green1Colided == true -> NewGreen1 = newCreature(g);
+        true -> NewGreen1 = updateCreature(Green1, P1, P2)
+    end,
+    if
+        Green2Colided == true -> NewGreen2 = newCreature(g);
+        true -> NewGreen2 = updateCreature(Green2, P1, P2)
+    end,
+    NewGreenCreatures = { NewGreen1, NewGreen2 },
 
+    % Update Red Creatures
+    NewRedCreatures = updateCreaturesList(RedCreatures, P1, P2),
+
+    % Return New State
     { {ID_P1, NewP1}, {ID_P2, NewP2}, NewGreenCreatures, NewRedCreatures, ArenaSize }.
 
 checkGreenColisions( Player, GreenCreatures ) ->
@@ -196,40 +210,6 @@ checkOutsideArena(P1, P2, ArenaSize) ->
         (P2_X < 0) or (P2_X < ArenaX) or (P2_Y < 0) or (P2_Y < ArenaY) -> {true, ID_P2}; 
         true -> {false, none}
     end.
-
-checkRedColisions( Player1, Player2, RedCreatures ) ->
-    { ID_P1, P1 } = Player1,
-    { ID_P2, P2 } = Player2,
-    ColisionsP1 = checkColision(P1, RedCreatures),
-    ColisionsP2 = checkColision(P2, RedCreatures),
-    if
-        ColisionsP1 == true -> {true, ID_P1};
-        ColisionsP2 == true -> {true, ID_P2};
-        true -> {false, none}
-    end.
-
-checkColisionsList( Player, Creatures ) ->
-    if
-        Creatures == [] -> false;
-        true -> 
-            [Creature | T ] = Creatures,
-            checkColision(Player, Creature) or checkColisionsList(Player, T)
-    end.
-
-
-checkColision( Player, Creature ) ->
-    {PlayerPosition, _, _, _, _, _, _, _, _, _, _, PlayerSize} = Player,
-    {CreaturePosition, _, _, CreatureSize, _, _} = Creature,
-
-    Distance = distanceBetween(PlayerPosition, CreaturePosition),
-    if
-        Distance < (PlayerSize/2 + CreatureSize/2) -> true;
-        true -> false
-    end.
-
-updateCreatures(Creatures, P1, P2) ->
-    %lists:map(updateCreature, Creatures).
-    [ updateCreature(Creature, P1, P2) || Creature <- Creatures].
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
