@@ -121,26 +121,26 @@ refreshTimer (Pid) ->
     .
 
 updateWithKeyPress(State, KeyPressed, From) ->
-    {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize } = State,
+    {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize } = State,
 
     if
-        From == ID_P1 -> 
+        From == PID_P1 -> 
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P1);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P1);
                 KeyPressed == "d" -> NewPlayer = turnRight(P1)
             end,
-            {{ID_P1, NewPlayer}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize };
-        From == ID_P2 -> 
+            {{NewPlayer, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize };
+        From == PID_P2 -> 
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P2);
                 KeyPressed == "d" -> NewPlayer = turnRight(P2)
             end,
-            {{ID_P1, P1}, {ID_P2, NewPlayer}, GreenCreatures, RedCreatures, ArenaSize };
+            {{P1, {U1,PID_P1}}, {NewPlayer, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize };
         true -> 
             io:format("Unkown id ~p in updateWithKeyPress", [From]),
-            {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize }
+            {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }
     end.
 
 checkLosses(State) ->
@@ -151,9 +151,9 @@ checkLosses(State) ->
     %% the second value is the id of the player o lost.
     %% if no player lost then the second value is `none`
     %% eg.: {true, PlayerID}, or {false, none}. Where PlayerID is some value that represents the player
-    {{ID_P1, P1}, {ID_P2, P2}, _, RedCreatures, ArenaSize} = State,
-    { HasColisions, PlayerColidedID } = checkRedColisions({ID_P1, P1}, {ID_P2, P2}, RedCreatures),
-    { WentOutsideBoard, PlayerOutsideID} = checkOutsideArena({ID_P1, P1}, {ID_P2, P2}, ArenaSize),
+    {{P1, ID_P1}, {P2, ID_P2}, _, RedCreatures, ArenaSize} = State,
+    { HasColisions, PlayerColidedID } = checkRedColisions({P1, ID_P1}, {P2, ID_P2}, RedCreatures),
+    { WentOutsideBoard, PlayerOutsideID} = checkOutsideArena({P1, ID_P1}, {P2, ID_P2}, ArenaSize),
     if
         HasColisions == true -> {true, PlayerColidedID};
         WentOutsideBoard == true -> {true, PlayerOutsideID};
@@ -161,7 +161,7 @@ checkLosses(State) ->
     end.
 
 update(State) ->
-    {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize} = State,
+    {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize} = State,
     {Green1, Green2} = GreenCreatures,
     
     % Update Players
@@ -186,7 +186,7 @@ update(State) ->
     NewRedCreatures = updateCreaturesList(RedCreatures, P1, P2),
 
     % Return New State
-    { {ID_P1, NewP1}, {ID_P2, NewP2}, NewGreenCreatures, NewRedCreatures, ArenaSize }.
+    { {NewP1, {U1,PID_P1}}, {NewP2,{U2,PID_P2}}, NewGreenCreatures, NewRedCreatures, ArenaSize }.
 
 checkGreenColisions( Player, GreenCreatures ) ->
     {Creature1, Creature2} = GreenCreatures,
@@ -200,8 +200,8 @@ checkGreenColisions( Player, GreenCreatures ) ->
     end.
 
 checkOutsideArena(P1, P2, ArenaSize) ->
-    {ID_P1, {P1Position, _, _, _, _, _, _, _, _, _, _, _}} = P1,
-    {ID_P2, {P2Position, _, _, _, _, _, _, _, _, _, _, _}} = P2,
+    {{P1Position, _, _, _, _, _, _, _, _, _, _, _}, ID_P1} = P1,
+    {{P2Position, _, _, _, _, _, _, _, _, _, _, _}, ID_P2} = P2,
     {ArenaX, ArenaY} = ArenaSize,
     { P1_X, P1_Y } = P1Position,
     { P2_X, P2_Y } = P2Position,
