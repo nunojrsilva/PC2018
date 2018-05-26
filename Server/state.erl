@@ -107,7 +107,8 @@ gameManager(State)->
     end.
 
 refreshTimer (Pid) ->
-    Step = 1000,
+    FramesPerSecond = 40,
+    Step = 1000/FramesPerSecond,
     send_after(Step, Pid, refresh),
     receive
         after
@@ -242,7 +243,7 @@ updateCreatures(Creatures, P1, P2) ->
 
 
 updateCreature(Creature, P1, P2) ->
-    {Position, Direction, DesiredDirection, Size, Type, Velocity} = Creature,
+    {Position, Direction, _, Size, Type, Velocity} = Creature,
     {PositionP1, _, _, _, _, _, _, _, _, _, _, _} = P1,
     {PositionP2, _, _, _, _, _, _, _, _, _, _, _} = P2,
 
