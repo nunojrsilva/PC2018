@@ -204,6 +204,8 @@ void draw() {
       }finally{
         readSocket.l.unlock();
       }
+      gameState = game_screen;
+
       break;
 
 

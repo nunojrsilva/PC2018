@@ -89,10 +89,11 @@ public class Reader extends Thread {
         this.l.lock();
         try{
           this.message = in.readLine();
+          String[] splitList = this.message.split(";");
 
-          if( this.message.equals("Waiting for your oponent") ){
-
-
+          if( splitList.length > 1 ){
+            this.ready = true;
+            this.wait.signal();
           }
         }catch(Exception e){
           e.printStackTrace();
@@ -107,38 +108,3 @@ public class Reader extends Thread {
 
   }
 }
-
-
-//
-//
-//
-// {
-//   {
-//     { {1,2}, 0,0,20,1,2.25,0.55,20,2,0.2,0.1,100}, {"elisio",<0.76.0>}
-//   },
-//   {
-//     { {1,2}, 0,0,20,2,2.25,0.55,20,2,0.2,0.1,100}, {"\n",<0.60.0>}
-//   },
-//   [
-//     { {1,2}, 0, {3,4}, 50, g,1},
-//     { {1,2}, 0, {3,4}, 50, g,1}
-//   ],
-//   [],
-//   {1200,800}
-// }
-//
-//
-// {
-//   {
-//     {"elisio"}, { {1,2}, 0,0,20,1,2.25,0.55,20,2,0.2,0.1,100}
-//   },
-//   {
-//     {"\n"}, { {1,2}, 0,0,20,2,2.25,0.55,20,2,0.2,0.1,100}
-//   },
-//   [
-//     { {1,2}, 0, {3,4}, 50, g,1},
-//     { {1,2}, 0, {3,4}, 50, g,1}
-//   ],
-//   [],
-//   {1200,800}
-// }
