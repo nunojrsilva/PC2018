@@ -34,14 +34,24 @@ authenticator(Sock) ->
                 "*login " ++ Dados ->
                     io:format("Entrei no login ~n"),
                     St = string:tokens(Dados, " "),
-                    [U | P] = St,
+                    [User | Pass] = St,
+                    io:format("User before  = ~p~n",[User]),
+                    io:format("Pass before = ~p~n",[Pass]),
+                    case {string:len(User), string:len(Pass)} of
+                        {0, 0} ->
+                            U = string:strip(User, right, "\n"),
+                            P = string:strip(Pass, right, "\n");
+                        _ ->
+                            U = 0,
+                            P = 0,
+                            gen_tcp:send(Sock,<<"login error\n">>),
+                            authenticator(Sock)
+                        end,
                     case login(U,P) of
                         ok ->
                             gen_tcp:send(Sock, <<"login successful\n">>),
-                            state ! {ready, self()}, % Avisa o processo state que está pronto
-                            %gen_tcp:send(Sock, <<"Waiting for the server\n">>),
                             user(Sock, U);
-                        invalid ->
+                        _ ->
                             gen_tcp:send(Sock,<<"login error\n">>),
                             authenticator(Sock) % Volta a tentar autenticar-se
                     end
@@ -49,7 +59,19 @@ authenticator(Sock) ->
                 "*create_account " ++ Dados ->
                     io:format("Estou a criar conta~n"),
                     St = string:tokens(Dados, " "),
-                    [U | P] = St,
+                    [User | Pass] = St,
+                    io:format("User before = ~p~n",[User]),
+                    io:format("Pass before = ~p~n",[Pass]),
+                    case {string:len(User), string:len(Pass)} of
+                        {0, 0} ->
+                            U = string:strip(User, right, "\n"),
+                            P = string:strip(Pass, right, "\n");
+                        _ ->
+                            U = 0,
+                            P = 0,
+                            gen_tcp:send(Sock,<<"create_account error\n">>),
+                            authenticator(Sock)
+                    end,
                     case create_account(U,P) of
                         ok ->
                             gen_tcp:send(Sock, <<"create_account successful\n">>),
@@ -87,7 +109,7 @@ userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
-            GameManager ! {keyPressed, Data, self()},
+            GameManager ! {keyPressed, Data, self()}, % Precisamos de saber quem foi que premiu a tecla!
             userOnGame(Sock, GameManager);
         {tcp_closed, _} ->
             GameManager ! {leave, self()};
