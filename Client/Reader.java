@@ -89,16 +89,9 @@ public class Reader extends Thread {
         this.l.lock();
         try{
           this.message = in.readLine();
-          // if( this.message.equals("login successful") ){
-          //   this.ready = true;
-          //   // this.start.notifyAll();
-          //   System.out.println("login successful\n");
-          // }else if( this.message.equals("login error") ){
-          //   // this.start.notifyAll();
-          //   System.out.println("login error");
-          // }else
-          if( this.message.equals(".........") ){
 
+          if( this.message.equals("waiting for another player") ){
+            
 
           }
         }finally{

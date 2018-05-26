@@ -54,99 +54,95 @@ void setup() {
   connect();
 
   cp5.addTextfield( "Username" )
-                           .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
-                           .setSize( textfield_width, fields_height )
-                           .setFocus(true)
-                           .setColorActive(color(255,0,0))
-                           .setFont(font)
-                           .setGroup(login)
-                           ;
+     .setGroup(login)
+     .setPosition( width/2 - spacing_size - textfield_width, height/2 - spacing_size - fields_height )
+     .setSize( textfield_width, fields_height )
+     .setFocus(true)
+     .setColorActive(color(255,0,0))
+     .setFont(font)
+     ;
   cp5.addButton( "Login" )
+     .setGroup(login)
      .setPosition( width/2 + spacing_size, height/2 - spacing_size - fields_height )
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
-                      public void controlEvent(CallbackEvent theEvent) {
-                        username = cp5.get(Textfield.class,"Username").getText();
-                        password = cp5.get(Textfield.class,"Password").getText();
-                        try{
+        public void controlEvent(CallbackEvent theEvent) {
+          username = cp5.get(Textfield.class,"Username").getText();
+          password = cp5.get(Textfield.class,"Password").getText();
+          try{
 
-                          if( server_connection_status.equals("Server offline") ){
-                            // writeSocket.connect();
-                            // readSocket.connect();
-                            connect();
-                            System.out.println(server_connection_status);
-                          }
-                          if( !server_connection_status.equals("Server offline") ){
-                            writeSocket.login(username,password);
-                            String m = readSocket.getMessage();
-                            if( m.equals("login error") ){
-                              server_connection_label.setValue("Login Error. Try again");
-                              System.out.println("passou pelo erro de login no Client.pde");
-                            }else if ( m.equals("login successful") ){
-                              readSocket.setStatus(true);
-                              cp5.hide();
-                              gameState = game_screen;
-                              readSocket.start();
-                            }
-                          }
-                        } // closes try
-                          catch(Exception e){
-                            e.printStackTrace();
-                          }
+            if( server_connection_status.equals("Server offline") ){
+              connect();
+              System.out.println(server_connection_status);
+            }
+            if( !server_connection_status.equals("Server offline") ){
+              writeSocket.login(username,password);
+              String m = readSocket.getMessage();
+              if( m.equals("login error") ){
+                server_connection_label.setValue("Login Error. Try again");
+                System.out.println("passou pelo erro de login no Client.pde");
+              }else if ( m.equals("login successful") ){
+                readSocket.setStatus(true);
+                cp5.hide();
+                gameState = game_screen;
+                readSocket.start();
+              }
+            }
+          } // closes try
+            catch(Exception e){
+              e.printStackTrace();
+            }
 
 
 
-                      } // closes method
-                    })
-     .setGroup(login)
-                    ;
+        } // closes method
+      })
+   ;
   cp5.addTextfield( "Password" )
+     .setGroup(login)
      .setPosition( width/2 - spacing_size - textfield_width, height/2 + spacing_size )
      .setSize( textfield_width, fields_height)
      .setPasswordMode(true)
      .setColorActive(color(255,0,0))
      .setFont(font)
-     .setGroup(login)
-                           ;
+     ;
   cp5.addButton( "New Account" )
+     .setGroup(login)
      .setPosition( width/2 + spacing_size, height/2 + spacing_size )
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
-                            public void controlEvent(CallbackEvent theEvent) {
-                              username = cp5.get(Textfield.class,"Username").getText();
-                              password = cp5.get(Textfield.class,"Password").getText();
-                              try{
-                                if( server_connection_status.equals("Server offline") ){
-                                  // writeSocket.connect();
-                                  // readSocket.connect();
-                                  connect();
-                                  System.out.println(server_connection_status);
-                                }
-                                if( !server_connection_status.equals("Server offline") ){
-                                  writeSocket.createAccount(username,password);
-                                  String m = readSocket.getMessage();
-                                  if( m.equals("create_account error") ){
-                                    server_connection_label.setText("").setValue("Account creation Error. Try again");
-                                    System.out.println("passou pelo erro de create account no Client.pde");
-                                  }else if( m.equals("create_account successful") ){
-                                    readSocket.setStatus(true);
-                                    gameState = game_screen;
-                                    readSocket.start();
-                                  }
-                                }
-                              }catch(Exception e){
-                                e.printStackTrace();
-                              }
-                            }
-                          })
-     .setGroup(login)
-                          ;
+        public void controlEvent(CallbackEvent theEvent) {
+          username = cp5.get(Textfield.class,"Username").getText();
+          password = cp5.get(Textfield.class,"Password").getText();
+          try{
+            if( server_connection_status.equals("Server offline") ){
+              connect();
+              System.out.println(server_connection_status);
+            }
+            if( !server_connection_status.equals("Server offline") ){
+              writeSocket.createAccount(username,password);
+              String m = readSocket.getMessage();
+              if( m.equals("create_account error") ){
+                server_connection_label.setText("").setValue("Account creation Error. Try again");
+                System.out.println("passou pelo erro de create account no Client.pde");
+              }else if( m.equals("create_account successful") ){
+                readSocket.setStatus(true);
+                gameState = game_screen;
+                readSocket.start();
+              }
+            }
+          }catch(Exception e){
+            e.printStackTrace();
+          }
+        }
+      })
+     ;
   server_connection_label = cp5.addTextlabel("Connecting to server")
+                               .setGroup(login)
                                .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
                                // .setColor(100)
                                .setFont(font)
                                .setText("Connecting to server")
-                               .setGroup(login)
                                // setFont(createFont("Calibri",20))
                                ;
 // cp5.addButton("END GAME")
