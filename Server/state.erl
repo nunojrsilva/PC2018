@@ -12,7 +12,7 @@
 %
 
 
-estado(Users_Score, Waiting, TopLevels, TopScore) ->
+estado(Users_Score, Waiting) ->
     io:format("Entrei no estado ~n"),
     receive
         {ready, Username, UserProcess} -> % Se há um user pronto a jogar, temos que ver qual é o seu nivel
@@ -21,14 +21,14 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                 {ok, {_, UserLevel }} -> % Descobrir nivel do User {GamesWon, UserLevel}
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
-                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopLevels, TopScore); %Adicionar User à queue porque não há ninguém para jogar com ele
+                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}]); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
                             Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             UserProcess ! UserProcessQueue  ! {go, Game},
-                            estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
+                            estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}])
                     end
                 ;
                 error -> % Se User não existe, inserir no map com stats a zero
@@ -37,40 +37,56 @@ estado(Users_Score, Waiting, TopLevels, TopScore) ->
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
                             io:format("Vou por o processo na queue"),
-                            estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopLevels, TopScore); %Adicionar User à queue porque não há ninguém para jogar com ele
+                            estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}]); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             UserProcess ! UserProcessQueue ! {go, Game},
-                            estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopLevels, TopScore)
+                            estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}])
                     end
-                end
+            end;
 
-        % {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
-        %     {{Username1, Score1}, {Username2, Score2}} = Result,
-        %
-        %     % Atualização da Pontuação do User1
-        %
-        %     {ok, {GamesWon1, UserLevel1} } = maps:find(Username1, Users_Score),
-        %     {ok, {GamesWon2, USer}}
-        %
-        %     if
-        %         Score1 > Score2 ->
-        %             NewGamesWon1 = GamesWon1 + 1,
-        %             if
-        %                 NewGamesWon1 > UserLevel1 ->
-        %                     NewUserLevel1 = UserLevel1 + 1,
-        %             true ->
-        %                 NewUserLevel1 = UserLevel1
-        %             end
-        %
-        %         true ->
-        %             NewGamesWon1 = GamesWon1,
-        %             NewUserLevel1 = UserLevel1
-        %     end,
-        %     NewMap = maps:put(Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
-        %     estado (NewMap, Waiting, TopLevels, TopScore); % Vale a pena guardar TopLEvels e TopScore?
+        {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
+
+            {{Username1, Score1}, {Username2, Score2}} = Result,
+
+            % Atualização da Pontuação
+
+            {ok, {GamesWon1, UserLevel1} } = maps:find(Username1, Users_Score),
+            {ok, {GamesWon2, UserLevel2} } = maps:find(Username2, Users_Score),
+
+            if
+                Score1 > Score2 ->
+                    NewGamesWon1 = GamesWon1 + 1,
+                    NewGamesWon2 = GamesWon2,
+                    NewUserLevel2 = UserLevel2,
+                    if
+                        NewGamesWon1 > UserLevel1 ->
+                            NewUserLevel1 = UserLevel1 + 1;
+                    true ->
+                        NewUserLevel1 = UserLevel1
+                    end;
+
+                true ->
+                    %Score 2 > Score2
+                    NewGamesWon2 = GamesWon2 + 1,
+                    NewGamesWon1 = GamesWon1,
+                    NewUserLevel1 = UserLevel1,
+                    if
+                        NewGamesWon2 > UserLevel2 ->
+                            NewUserLevel2 = UserLevel2 + 1;
+                    true ->
+                        NewUserLevel2 = UserLevel2
+                    end
+            end,
+            AuxMap = maps:put( Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
+            NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
+            estado (NewMap, Waiting)
+            ;
+        {tops, From} ->
+            List = maps:to_list(Users_Score),
+            SortedList = lists:keysort(2, List)
 
     end
 .
@@ -236,5 +252,5 @@ subtractVectors(Pos1, Pos2) ->
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
-    estado( #{}, [], #{}, #{})
+    estado( #{}, [])
     .
