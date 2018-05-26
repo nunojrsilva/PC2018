@@ -10,6 +10,13 @@ class Creature {
   PVector desiredDirection;
   int     type; // 0 for green 1 for red
 
+  Creature(int type) {
+    this.position = new PVector();
+    this.direction = new PVector();
+    this.desiredDirection = new PVector();
+    this.type = type;
+  }
+
   Creature( float posX, float posY, int type ) {
     this.position = new PVector(posX, posY);
     this.direction = new PVector(0,0);
@@ -24,7 +31,7 @@ class Creature {
   }
 
   void calcDesiredDirection( PlayerAvatar p1, PlayerAvatar p2) {
-    // Get distances  
+    // Get distances
     float d1 = this.position.dist(p1.position);
     float d2 = this.position.dist(p2.position);
 

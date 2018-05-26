@@ -82,29 +82,38 @@ public class Reader extends Thread {
     return this.message;
   }
 
-  public void run(){
-    try{
-      this.connect();
-      while(true){
-        this.l.lock();
-        try{
-          this.message = in.readLine();
-          String[] splitList = this.message.split(";");
-
-          if( splitList.length > 1 ){
-            this.ready = true;
-            this.wait.signal();
-          }
-        }catch(Exception e){
-          e.printStackTrace();
-        }finally{
-          this.l.unlock();
-        }
-
-      }
-    }catch (Exception e){
-      e.printStackTrace();
-    }
+  public void updateState(String[] l){
+      PlayerAvatar p1 = this.state.
 
   }
+
+  public void run(){
+      while(true){
+
+          try{
+            this.message = in.readLine();
+            String[] splitList = this.message.split(";");
+
+            if( splitList[0].equals("start") ){
+                this.l.lock();
+                try {
+                  this.ready = true;
+                }finally{
+                  this.l.unlock();
+                }
+                this.wait.signal();
+            }else // end if start
+
+            if(splitList[0].equals("result")){
+
+            }else{ // end result
+              updateState(splitList);
+            }
+          }catch(Exception e){
+            e.printStackTrace();
+          }
+
+
+      } // end while
+  } // end method
 }

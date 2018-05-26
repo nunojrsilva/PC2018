@@ -74,7 +74,7 @@ void setup() {
           try{
 
             if( server_connection_status.equals("Server offline") ){
-              connect();
+              // connect();
               System.out.println(server_connection_status);
             }else if( !server_connection_status.equals("Server offline") ){
 
@@ -119,7 +119,7 @@ void setup() {
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
         public void controlEvent(CallbackEvent theEvent) {
-          connect();
+          // connect();
           username = cp5.get(Textfield.class,"Username").getText();
           password = cp5.get(Textfield.class,"Password").getText();
 

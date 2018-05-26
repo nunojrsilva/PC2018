@@ -20,14 +20,22 @@ class PlayerAvatar {
   PVector positionOffset = new PVector(0,0);
   float   energyToAdd = 0;
 
-  PlayerAvatar( float posX, float posY, int type) {
+  PlayerAvatar(int type){
+    this.type      = type;
+    this.position  = new PVector();
+    this.direction = 0;
+    this.velocity  = 0;
+    this.energy    = this.maxEnergy;
+  }
+
+  PlayerAvatar(float posX, float posY, int type) {
     this.type = type;
     this.position  = new PVector(posX, posY);
     this.direction = 0;
     this.velocity  = 0;
     this.energy    = this.maxEnergy;
   }
-  
+
   void keyTyped() {
     if( key == 'w' ) {
       this.accelerateForward();
@@ -37,14 +45,14 @@ class PlayerAvatar {
       this.turnLeft();
     }
   }
-  
-  void processKeys(JSONObject keys ) {
+
+  void processKeys(JSONObject keys) {
     // key is a Processing variable
     if( this.energy > this.energyWaste ) {
       if( keys.getBoolean("w") ) {
         this.accelerateForward();
       }
-      if( keys.getBoolean("d") ) {  
+      if( keys.getBoolean("d") ) {
          this.turnRight();
       }
       if( keys.getBoolean("a") ) {
@@ -83,21 +91,21 @@ class PlayerAvatar {
   }
 
   void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy ) {
-    
-    // Repel from other player 
+
+    // Repel from other player
     float distance = otherPlayer.position.dist( this.position );
     // direction is vector pointing AWAY from the player
     PVector direction = new PVector( this.position.x, this.position.y);
     direction.sub( otherPlayer.position );
     direction.normalize();
     this.positionOffset = direction.mult( 1/pow(distance,0.3) );
-    
+
     PVector directionVector = PVector.fromAngle(this.direction);
     directionVector.mult( this.velocity );
     this.positionOffset.add( directionVector );
-    
-    
-      
+
+
+
     this.energyToAdd = extraEnergy;
   }
 
@@ -118,21 +126,21 @@ class PlayerAvatar {
     if(this.velocity > 0)
       this.velocity -= this.drag;
     else this.velocity = 0;
-  
-     
+
+
     this.energy += this.energyToAdd;
     if(this.energy > this.maxEnergy) this.energy = this.maxEnergy;
     this.energy += this.energyGain;
     if( this.energy > this.maxEnergy ) this.energy = this.maxEnergy;
   }
-  
+
   void drawEnergy () {
      // draw outline box
      fill(255);
      strokeWeight(1);
      stroke(0,0,0);
      rect(10, 10, this.maxEnergy * 10, 30);
-     
+
      // draw energy box
      noStroke();
      fill( 255, 0, 0 );
