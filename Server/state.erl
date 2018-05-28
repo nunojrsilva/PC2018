@@ -116,7 +116,7 @@ gameManager(State)->
             KeyPressed = processKeyPressData( Data ),
             { SomeoneLost, WhoLost } = checkLosses(State),
             if
-                SomeoneLost -> engGame(WhoLost, State); %end game
+                SomeoneLost -> gameManager(State); % TODO: handle end game
                 true ->
                     NewState = updateWithKeyPress(State, KeyPressed, From),
                     gameManager(NewState)
