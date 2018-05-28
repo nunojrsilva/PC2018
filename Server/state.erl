@@ -22,6 +22,11 @@
 %%     -- The first element is the User's Process ID; referenced as (PID_P#)
 
 
+start() ->
+    % Nao sei se será necessária esta funcao, vamos manter just in case
+    estado( #{}, [], #{}, #{})
+    .
+
 estado(Users_Score, Waiting, TopLevels, TopScore) ->
     io:format("Entrei no estado ~n"),
     receive
@@ -109,13 +114,19 @@ gameManager(State)->
         {keyPressed, Data, From} ->
             io:format("Entrei no keyPressed ~n"),
             KeyPressed = processKeyPressData( Data ),
-            NewState = updateWithKeyPress(State, KeyPressed, From),
-            gameManager(NewState);
-        {leave, From} ->
+            { SomeoneLost, WhoLost } = checkLosses(State),
+            if
+                SomeoneLost -> engGame(WhoLost, State); %end game
+                true ->
+                    NewState = updateWithKeyPress(State, KeyPressed, From),
+                    gameManager(NewState)
+            end;
+        {leave, From} -> % O que é isto?
             {}
             ;
         refresh ->
             io:format("Entrei no ramo refresh ~n"),
+            { SomeoneLost, WhoLost } = checkLosses(State),
             NewState = update(State),
             gameManager(NewState)
     end.
@@ -235,8 +246,3 @@ checkOutsideArena(P1, P2, ArenaSize) ->
     end.
 
 
-
-start() ->
-    % Nao sei se será necessária esta funcao, vamos manter just in case
-    estado( #{}, [], #{}, #{})
-    .
