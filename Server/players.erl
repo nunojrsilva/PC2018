@@ -64,14 +64,20 @@ updatePlayers(P1, P2, GreenColisions1, GreenColisions2) ->
 
     Distance = distanceBetween(P1Position, P2Position), %Porque é que precisamos disso?
     VectorP1toP2 = subtractVectors(P1Position, P2Position),
-    DirectionVecP1 = multiplyVector({cos(P1Direction) * P1Velocity, sin(P1Direction)* P1Velocity}, Distance),
+    DirectionVecP1 = multiplyVector({-cos(P1Direction) * P1Velocity, -sin(P1Direction)* P1Velocity}, Distance),
     DirectionVecP2 = multiplyVector({cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity}, Distance),
 
-    NewP1Position = subtractVectors( VectorP1toP2, addPairs(P1Position, DirectionVecP1)),
+    NewP1Position = addPairs( VectorP1toP2, addPairs(P1Position, DirectionVecP1)),
     NewP2Position = addPairs(VectorP1toP2, addPairs(P2Position, DirectionVecP2)),
 
-    NewP1Velocity = P1Velocity - P1Drag,
-    NewP2Velocity = P2Velocity - P2Drag,
+    if
+        P1Velocity > 0 -> NewP1Velocity = P1Velocity - P1Drag;
+        true -> NewP1Velocity = 0
+    end,
+    if
+        P2Velocity > 0 -> NewP2Velocity = P2Velocity - P1Drag;
+        true -> NewP2Velocity = 0
+    end,
 
     NewP1Energy = P1Energy + P1EnergyGain + GreenColisions1,
     NewP2Energy = P2Energy + P2EnergyGain + GreenColisions2,
