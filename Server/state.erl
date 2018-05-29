@@ -2,8 +2,9 @@
 -export ([start/0, formatState/1]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
 -import (timer, [send_after/3]).
--import (creatures, [newCreature/1, updateCreature/3]).
+-import (creatures, [newCreature/1, updateCreature/3, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/3]).
 -import (players, [newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/4 ]).
+-import (vectors2d, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 
 % O que será necessário manter no estado?
 % - Map User -> {PartidasVencidas, Nivel} -- Reset ao PartidasVencidas quando subir de nivel
@@ -12,6 +13,13 @@
 % - Como vamos guardar os jogos que estão a decorrer? Outro processo? Faz sentido o estado, quando recebe um novo user ter um processo diferente que
 % trate da parte do jogo em si e que depois comunique no final o resultado certo? Esse processo comunica por mensagens com os processos user dos clientes
 %
+
+%% IMPORTANT note about the User
+%% In the State we save a pair that represents the user: {PlayerAvartar, UserObject}
+%%  - The first element represents the PlayerAvatar; referenced as (P#)
+%%  - The second Element is another pair representing the User {Username, UserProcess}:
+%%     -- The first element is the User's username;   referenced as (U#)
+%%     -- The first element is the User's Process ID; referenced as (PID_P#)
 
 
 estado(Users_Score, Waiting) ->
@@ -98,7 +106,7 @@ estado(Users_Score, Waiting) ->
 .
 
 newState(Player1, Player2) ->
-    State = { {newPlayer(1), Player1}, {newPlayer(2), Player2}, [newCreature(g), newCreature(g)], [ ], {1200,800}},
+    State = { {newPlayer(1), Player1}, {newPlayer(2), Player2}, {newCreature(g), newCreature(g)}, [ ], {1200,800}},
     io:fwrite("Estado: ~p ~n", [State]),
     State.
 
@@ -147,43 +155,95 @@ refreshTimer (Pid) ->
     .
 
 updateWithKeyPress(State, KeyPressed, From) ->
-    {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize } = State,
+    {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize } = State,
 
     if
-        From == ID_P1 ->
+        From == PID_P1 ->
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P1);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P1);
                 KeyPressed == "d" -> NewPlayer = turnRight(P1)
             end,
-            {{ID_P1, NewPlayer}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize };
-        From == ID_P2 ->
+            {{NewPlayer, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize };
+        From == PID_P2 ->
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P2);
                 KeyPressed == "d" -> NewPlayer = turnRight(P2)
             end,
-            {{ID_P1, P1}, {ID_P2, NewPlayer}, GreenCreatures, RedCreatures, ArenaSize };
+            {{P1, {U1,PID_P1}}, {NewPlayer, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize };
         true ->
             io:format("Unkown id ~p in updateWithKeyPress", [From]),
-            {{ID_P1, P1}, {ID_P2, P2}, GreenCreatures, RedCreatures, ArenaSize }
+            {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }
+    end.
+
+checkLosses(State) ->
+    %% Determines if a player if lost
+    %% Which means determining if a player as touched a red creature,
+    %% or if a player as gone outside the board
+    %% returns a pair where the first element is a boolean value saying if someon loss
+    %% the second value is the id of the player o lost.
+    %% if no player lost then the second value is `none`
+    %% eg.: {true, PlayerID}, or {false, none}. Where PlayerID is some value that represents the player
+    {{P1, ID_P1}, {P2, ID_P2}, _, RedCreatures, ArenaSize} = State,
+    { HasColisions, PlayerColidedID } = checkRedColisions({P1, ID_P1}, {P2, ID_P2}, RedCreatures),
+    { WentOutsideBoard, PlayerOutsideID} = checkOutsideArena({P1, ID_P1}, {P2, ID_P2}, ArenaSize),
+    if
+        HasColisions == true -> {true, PlayerColidedID};
+        WentOutsideBoard == true -> {true, PlayerOutsideID};
+        true -> {false, none}
     end.
 
 update(State) ->
-    {{P1_ID, P1}, {P1_ID, P2}, GreenCreatures, RedCreatures, ArenaSize} = State,
+    {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize} = State,
+    {Green1, Green2} = GreenCreatures,
 
-    %% Check for Colisions. And evaluate if there's energy to add
-    %% Check to see if Players are outside the arena walls.
+    % Update Players
+    GreenColisions_P1 = checkGreenColisions(P1, GreenCreatures),
+    GreenColisions_P2 = checkGreenColisions(P2, GreenCreatures),
+    {NewP1, NewP2} = updatePlayers(P1, P2, GreenColisions_P1, GreenColisions_P2),
 
-    {NewP1, NewP2} = updatePlayers(P1, P2, 0, 0),
-    NewGreenCreatures = updateCreatures(GreenCreatures, NewP1, NewP2),
-    NewRedCreatures = updateCreatures(RedCreatures, NewP1, NewP2),
-    {NewP1, NewP2, NewGreenCreatures, NewRedCreatures, ArenaSize}.
+    % Update Green Creatures
+    Green1Colided = checkColision(P1, Green1) or checkColision(P2, Green1),
+    Green2Colided = checkColision(P1, Green2) or checkColision(P2, Green2),
+    if
+        Green1Colided == true -> NewGreen1 = newCreature(g);
+        true -> NewGreen1 = updateCreature(Green1, P1, P2)
+    end,
+    if
+        Green2Colided == true -> NewGreen2 = newCreature(g);
+        true -> NewGreen2 = updateCreature(Green2, P1, P2)
+    end,
+    NewGreenCreatures = { NewGreen1, NewGreen2 },
 
+    % Update Red Creatures
+    NewRedCreatures = updateCreaturesList(RedCreatures, P1, P2),
 
-updateCreatures(Creatures, P1, P2) ->
-    %lists:map(updateCreature, Creatures).
-    [ updateCreature(Creature, P1, P2) || Creature <- Creatures].
+    % Return New State
+    { {NewP1, {U1,PID_P1}}, {NewP2,{U2,PID_P2}}, NewGreenCreatures, NewRedCreatures, ArenaSize }.
+
+checkGreenColisions( Player, GreenCreatures ) ->
+    {Creature1, Creature2} = GreenCreatures,
+    Colided1 = checkColision(Player, Creature1),
+    Colided2 = checkColision(Player, Creature2),
+    if
+        Colided1 and Colided2 -> 2;
+        Colided1 and not Colided2 -> 1;
+        not Colided1 and Colided2 -> 1;
+        true -> 0
+    end.
+
+checkOutsideArena(P1, P2, ArenaSize) ->
+    {{P1Position, _, _, _, _, _, _, _, _, _, _, _}, ID_P1} = P1,
+    {{P2Position, _, _, _, _, _, _, _, _, _, _, _}, ID_P2} = P2,
+    {ArenaX, ArenaY} = ArenaSize,
+    { P1_X, P1_Y } = P1Position,
+    { P2_X, P2_Y } = P2Position,
+    if
+        (P1_X < 0) or (P1_X < ArenaX) or (P1_Y < 0) or (P1_Y < ArenaY) -> {true, ID_P1};
+        (P2_X < 0) or (P2_X < ArenaX) or (P2_Y < 0) or (P2_Y < ArenaY) -> {true, ID_P2};
+        true -> {false, none}
+    end.
 
 formatState(State) ->
     %P1 and P2 contain the Player objects, Player1 and Player 2 contain {Username, UserProcess}
