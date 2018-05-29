@@ -111,6 +111,7 @@ processKeyPressData( Data ) ->
 
 
 gameManager(State)->
+    io:format("Game Manager a correr ~n"),
     % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
     receive
@@ -122,20 +123,26 @@ gameManager(State)->
         {leave, From} ->
             {}
             ;
-        refresh ->
+        {refresh, From} ->
             io:format("Entrei no ramo refresh ~n"),
+            io:format("From = ~p~n",[From]),
             NewState = update(State),
+            Res = formatState(NewState),
+            io:format("~p~n",[Res]),
+            From ! back,
             gameManager(NewState)
     end.
 
 refreshTimer (Pid) ->
+    %Step needs to be an integer!
+    io:format("Refresh ativo ~n"),
     FramesPerSecond = 40,
     Step = 1000/FramesPerSecond,
-    send_after(Step, Pid, refresh),
+    Pid ! {refresh, 5},
+    timer:send_after( Step, Pid, {refresh, self()} ),
     receive
-        after
-            1000 ->
-                refreshTimer(Pid)
+        back ->
+            refreshTimer(Pid)
     end
     .
 
