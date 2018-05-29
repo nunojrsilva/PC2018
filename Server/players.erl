@@ -71,12 +71,12 @@ updatePlayers(P1, P2, GreenColisions1, GreenColisions2) ->
     NewP2Position = addPairs(VectorP1toP2, addPairs(P2Position, DirectionVecP2)),
 
     if
-        P1Velocity > 0 -> NewP1Velocity = P1Velocity - P1Drag;
-        true -> NewP1Velocity = 0
+        P1Velocity > 0.0 -> NewP1Velocity = P1Velocity - P1Drag;
+        true -> NewP1Velocity = 0.0
     end,
     if
-        P2Velocity > 0 -> NewP2Velocity = P2Velocity - P1Drag;
-        true -> NewP2Velocity = 0
+        P2Velocity > 0.0 -> NewP2Velocity = P2Velocity - P1Drag;
+        true -> NewP2Velocity = 0.0
     end,
 
     NewP1Energy = P1Energy + P1EnergyGain + GreenColisions1,
