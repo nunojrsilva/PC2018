@@ -165,11 +165,31 @@ void setup() {
                                ;
   cp5.addButton("END GAME")
      .setGroup(game)
-     .setPosition(10,10);
-     .setFont(font)
+     .setPosition(10,10)
+     .setSize( button_width, fields_height )
+     .onClick( new CallbackListener() {
+        public void controlEvent(CallbackEvent theEvent) {
+          gameState = result_screen;
+
+        }
+     })
      ;
+  cp5.addTextlabel("Result Screen")
+     .setGroup(result)
+     .setPosition(0,0)
+     .setSize( arenaWidth, arenaHeight)
+     ;
+  cp5.addButton("NEW GAME")
+    .setGroup(result)
+    .setPosition(width/2 - button_width/2, arenaHeight + spacing_size )
+    .setSize( button_width, fields_height )
+    .onClick( new CallbackListener() {
+       public void controlEvent(CallbackEvent theEvent) {
+         gameState = result_screen;
 
-
+       }
+    })
+    ;
 }
 
 void draw() {
@@ -227,6 +247,19 @@ void draw() {
       cp5.getGroup("game").hide();
       background(0);
       cp5.getGroup("result").show();
+
+      readSocket.l.lock();
+      try {
+        String result = readSocket.getMessage();
+        while(result.startsWith("r"))
+          readSocket.notResult.await();
+
+      }catch (Exception e){
+        e.printStackTrace();
+      }
+      finally{
+        readSocket.l.unlock();
+      }
       break;
 
 

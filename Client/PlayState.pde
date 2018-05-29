@@ -11,8 +11,8 @@ class PlayState {
 
   JSONObject keys;
 
-  int thisPlayerPoints;
-  int adversaryPoints;
+  float thisPlayerPoints;
+  float adversaryPoints;
 
   int timeSlice = 0;
 
@@ -39,7 +39,7 @@ class PlayState {
     this.timeSlice = millis();
   }
 
-  PlayState (PlayerAvatar a, PlayerAvatar b, Creature[] green, ArrayList<Creature> red, int score1, int score2) {
+  PlayState (PlayerAvatar a, PlayerAvatar b, Creature[] green, ArrayList<Creature> red, float score1, float score2) {
     this.thisPlayer = a;
     this.adversary  = b;
 
@@ -131,14 +131,14 @@ class PlayState {
   //   return this.adversary;
   // }
 
-  int getScore1(){
+  float getScore1(){
     return this.thisPlayerPoints;
   }
 
-  int getScore2(){
+  float getScore2(){
     return this.adversaryPoints;
   }
-  
+
   void draw() {
     // Draw
     this.greens[0].draw(this.assets);

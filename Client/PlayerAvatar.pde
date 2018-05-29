@@ -14,7 +14,7 @@ class PlayerAvatar {
   float   direction;    // Ângulo para onde se encontra virado
   float   velocity;     // Escalar
   float   energy;       // Energia atual
-  int     type;         // 0 - Jogador. 1 - Oponente
+  float     type;         // 0 - Jogador. 1 - Oponente
 
   /*** INFORMATION FOR UPDATE ***/
   PVector positionOffset = new PVector(0,0);
@@ -36,7 +36,7 @@ class PlayerAvatar {
     this.energy    = this.maxEnergy;
   }
 
-  PlayerAvatar(float posX, float posY, float direction, float velocity, float energy, int type, float frontAcceleration, float angularVelocity, float maxEnergy, float energyWaste, float energyGain, float drag, float size) {
+  PlayerAvatar(float posX, float posY, float direction, float velocity, float energy, float type, float frontAcceleration, float angularVelocity, float maxEnergy, float energyWaste, float energyGain, float drag, float size) {
     this.type = type;
     this.position  = new PVector(posX, posY);
     this.direction = direction;

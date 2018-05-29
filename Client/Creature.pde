@@ -8,7 +8,7 @@ class Creature {
   PVector position;
   PVector direction;
   PVector desiredDirection;
-  int     type; // 0 for green 1 for red
+  float   type; // 0 for green 1 for red
 
   Creature(int type) {
     this.position         = new PVector();
@@ -24,7 +24,7 @@ class Creature {
     this.type             = type;
   }
 
-  Creature( float posX, float posY, float dirX, float diry, float dx, float dy, float size, int type, float velocity ) {
+  Creature( float posX, float posY, float dirX, float dirY, float dx, float dy, float size, float type, float velocity ) {
     this.position         = new PVector(posX, posY);
     this.direction        = new PVector(dirX,dirY);
     this.desiredDirection = new PVector(dx,dy);
