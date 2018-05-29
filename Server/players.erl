@@ -79,8 +79,15 @@ updatePlayers(P1, P2, GreenColisions1, GreenColisions2) ->
         true -> NewP2Velocity = 0.0
     end,
 
-    NewP1Energy = P1Energy + P1EnergyGain + GreenColisions1,
-    NewP2Energy = P2Energy + P2EnergyGain + GreenColisions2,
+    if
+        (P1Energy + P1EnergyGain + GreenColisions1) > P1MaxEnergy -> NewP1Energy = P1MaxEnergy;
+        true -> NewP1Energy = P1Energy + P1EnergyGain + GreenColisions1
+    end,
+    if
+        (P2Energy + P2EnergyGain + GreenColisions2) > P2MaxEnergy -> NewP2Energy = P2MaxEnergy;
+        true -> NewP2Energy = P2Energy + P2EnergyGain + GreenColisions2
+    end,
+
 
     {
         {NewP1Position, P1Direction, NewP1Velocity, NewP1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size},
