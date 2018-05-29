@@ -8,16 +8,16 @@ newPlayer(Type) ->
     %Constants
     FrontAcceleration = 2.25,
     AngularVelocity = 0.55,
-    MaxEnergy = 20,
-    EnergyWaste = 2,
+    MaxEnergy = 20.0,
+    EnergyWaste = 2.0,
     EnergyGain = 0.2,
     Drag = 0.1,
-    Size = 100,
+    Size = 100.0,
     %Variables
-    Position = {1,2},
-    Direction = 0,
-    Velocity = 0,
-    Energy = 20,
+    Position = {1.0,2.0},
+    Direction = 0.0,
+    Velocity = 0.0,
+    Energy = 20.0,
 
     {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
 

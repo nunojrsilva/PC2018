@@ -7,12 +7,12 @@
 %Creature = {Position(vector), Direction, DesiredDirection(vector), Size, Type, Velocity}
 newCreature(Type) ->
     %Constants
-    Velocity = 1,
+    Velocity = 1.0,
     %Variables
-    Position = {1,2},
-    Direction = {0,0},
-    DesiredDirection = {3,4},
-    Size = 50,
+    Position = {1.0,2.0},
+    Direction = {0.0,0.0},
+    DesiredDirection = {3.0,4.0},
+    Size = 50.0,
 
     {Position, Direction, DesiredDirection, Size, Type, Velocity}.
 
