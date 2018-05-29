@@ -1,6 +1,6 @@
 -module(creatures).
 -export([newCreature/1, updateCreature/3, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/3]).
--import(vectors2D, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
+-import(vectors2d, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 
 
 
@@ -10,7 +10,7 @@ newCreature(Type) ->
     Velocity = 1,
     %Variables
     Position = {1,2},
-    Direction = 0,
+    Direction = {0,0},
     DesiredDirection = {3,4},
     Size = 50,
 
