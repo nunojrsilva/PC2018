@@ -163,18 +163,12 @@ void setup() {
                                .setText("Connecting to server")
                                // setFont(createFont("Calibri",20))
                                ;
-// cp5.addButton("END GAME")
-  // readSocket.l.lock();
-  // try {
-  //   while( !readSocket.ready ){
-  //     server_connection_label.setValue(readSocket.getMessage());
-  //     readSocket.wait.await();
-  //   }
-  // }catch (Exception e){
-  //   e.printStackTrace();
-  // }finally{
-  //   readSocket.l.unlock();
-  // }
+  cp5.addButton("END GAME")
+     .setGroup(game)
+     .setPosition(10,10);
+     .setFont(font)
+     ;
+
 
 }
 

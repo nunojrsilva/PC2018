@@ -11,17 +11,25 @@ class Creature {
   int     type; // 0 for green 1 for red
 
   Creature(int type) {
-    this.position = new PVector();
-    this.direction = new PVector();
+    this.position         = new PVector();
+    this.direction        = new PVector();
     this.desiredDirection = new PVector();
-    this.type = type;
+    this.type             = type;
   }
 
   Creature( float posX, float posY, int type ) {
-    this.position = new PVector(posX, posY);
-    this.direction = new PVector(0,0);
+    this.position         = new PVector(posX, posY);
+    this.direction        = new PVector(0,0);
     this.desiredDirection = new PVector(0,0);
-    this.type = type;
+    this.type             = type;
+  }
+
+  Creature( float posX, float posY, float dirX, float diry, float dx, float dy, float size, int type, float velocity ) {
+    this.position         = new PVector(posX, posY);
+    this.direction        = new PVector(dirX,dirY);
+    this.desiredDirection = new PVector(dx,dy);
+    this.type             = type;
+    this.velocity         = velocity;
   }
 
   void calcDirection() {

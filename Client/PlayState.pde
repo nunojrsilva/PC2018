@@ -39,6 +39,26 @@ class PlayState {
     this.timeSlice = millis();
   }
 
+  PlayState (PlayerAvatar a, PlayerAvatar b, Creature[] green, ArrayList<Creature> red, int score1, int score2) {
+    this.thisPlayer = a;
+    this.adversary  = b;
+
+    this.greens = green;
+
+    this.reds = red;
+
+    this.thisPlayerPoints = score1;
+    this.adversaryPoints  = score2;
+
+    this.assets = assets;
+
+    this.keys = new JSONObject();
+    this.keys.setBoolean("w", false);
+    this.keys.setBoolean("a", false);
+    this.keys.setBoolean("d", false);
+
+    this.timeSlice = millis();
+  }
   void keyTyped() {
     this.thisPlayer.keyTyped();
   }
@@ -103,6 +123,22 @@ class PlayState {
     this.updateRedsList();
   }
 
+  // PlayerAvatar getPlayer1(){
+  //   return this.thisPlayer;
+  // }
+  //
+  // PlayerAvatar getPlayer2(){
+  //   return this.adversary;
+  // }
+
+  int getScore1(){
+    return this.thisPlayerPoints;
+  }
+
+  int getScore2(){
+    return this.adversaryPoints;
+  }
+  
   void draw() {
     // Draw
     this.greens[0].draw(this.assets);

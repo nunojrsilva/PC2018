@@ -83,8 +83,29 @@ public class Reader extends Thread {
   }
 
   public void updateState(String[] l){
-      PlayerAvatar p1 = this.state.
+      PlayerAvatar p1 = new PlayerAvatar(l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10] ,l[11], l[12], l[13]);
+      PlayerAvatar p2 = new PlayerAvatar(l[15], l[16], l[17], l[18], l[19], l[20], l[21], l[22], l[23], l[24] ,l[25], l[26], l[27]);
+      int greens, reds;
 
+      greens = l[28];
+      Creature[] green;
+      greeen[0] = new Creature(l[29], l[30], l[31], l[32], l[33],l[34], l[35], l[36], l[37] );
+      green[1] = new Creature(l[38], l[39], l[40], l[41], l[42],l[43], l[44], l[45], l[46] );
+
+      reds = l[47];
+      ArrayList<Creature> red;
+      for( int i = 0; i < reds; i++){
+        red.add( new Creature(l[29], l[30], l[31], l[32], l[33],l[34], l[35], l[36], l[37] ));
+      }
+
+      int score1 = this.state.getScore1();
+      int score2 = this.state.getScore2();
+      l.lock();
+      try {
+        this.state = new PlayState(p1, p2, green, red, score1, score2);
+      }finally{
+        l.unlock();
+      }
   }
 
   public void run(){
@@ -92,6 +113,10 @@ public class Reader extends Thread {
 
           try{
             this.message = in.readLine();
+          }catch(Exception e){
+            e.printStackTrace();
+            System.exit(1);
+          }
             String[] splitList = this.message.split(";");
 
             if( splitList[0].equals("start") ){
@@ -109,9 +134,6 @@ public class Reader extends Thread {
             }else{ // end result
               updateState(splitList);
             }
-          }catch(Exception e){
-            e.printStackTrace();
-          }
 
 
       } // end while

@@ -36,6 +36,21 @@ class PlayerAvatar {
     this.energy    = this.maxEnergy;
   }
 
+  PlayerAvatar(float posX, float posY, float direction, float velocity, float energy, int type, float frontAcceleration, float angularVelocity, float maxEnergy, float energyWaste, float energyGain, float drag, float size) {
+    this.type = type;
+    this.position  = new PVector(posX, posY);
+    this.direction = direction;
+    this.velocity  = velocity;
+    this.energy    = energy;
+    this.type      = type;
+    this.frontAcceleration = frontAcceleration;
+    this.angularVelocity   = angularVelocity;
+    this.maxEnergy         = maxEnergy;
+    this.energyWaste       = energyWaste;
+    this.energyGain        = energyGain;
+    this.drag              = drag;
+  }
+
   void keyTyped() {
     if( key == 'w' ) {
       this.accelerateForward();
