@@ -1,5 +1,5 @@
 -module (state).
--export ([start/0, formatState/1]).
+-export ([start/0]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
 -import (timer, [send_after/3]).
 -import (creatures, [newCreature/1, updateCreature/3, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/3]).
@@ -21,13 +21,15 @@
 %%     -- The first element is the User's username;   referenced as (U#)
 %%     -- The first element is the User's Process ID; referenced as (PID_P#)
 
+% GAME END
+
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
-    estado( #{}, [])
+    estado( #{}, [], [], [])
     .
 
-estado(Users_Score, Waiting) ->
+estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
     io:format("Entrei no estado ~n"),
     receive
         {ready, Username, UserProcess} -> % Se há um user pronto a jogar, temos que ver qual é o seu nivel
@@ -36,14 +38,14 @@ estado(Users_Score, Waiting) ->
                 {ok, {_, UserLevel }} -> % Descobrir nivel do User {GamesWon, UserLevel}
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
-                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}]); %Adicionar User à queue porque não há ninguém para jogar com ele
+                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
-                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end ),
+                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp()) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             UserProcess ! UserProcessQueue  ! {go, Game},
-                            estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}])
+                            estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
                     end
                 ;
                 error -> % Se User não existe, inserir no map com stats a zero
@@ -52,17 +54,18 @@ estado(Users_Score, Waiting) ->
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
                             io:format("Vou por o processo na queue"),
-                            estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}]); %Adicionar User à queue porque não há ninguém para jogar com ele
+                            estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
-                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue})) end),
+                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp()) end),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
+                            SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue ! {go, Game},
-                            estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}])
+                            estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
                     end
             end;
 
-        {gameEnd, Result} -> % O que é suposto devolvermos? {Username , Score} TEMOS QUE ACABAR ISTO!
+        {gameEnd, Result} ->
 
             {{Username1, Score1}, {Username2, Score2}} = Result,
 
@@ -84,7 +87,7 @@ estado(Users_Score, Waiting) ->
                     end;
 
                 true ->
-                    %Score 2 > Score2
+                    %Score 2 > Score1
                     NewGamesWon2 = GamesWon2 + 1,
                     NewGamesWon1 = GamesWon1,
                     NewUserLevel1 = UserLevel1,
@@ -95,18 +98,15 @@ estado(Users_Score, Waiting) ->
                         NewUserLevel2 = UserLevel2
                     end
             end,
+
+            %Update Tops
+            NewTopScore = updateTopScore ({Username1, Score1}, TopScoreTimes),
+            NewTopScore_ = updateTopScore ({Username2, Score2}, NewTopScore),
+            NewTopLevel = updateTopLevel ({Username1, NewUserLevel1}, TopScoreLevels),
+            NewTopLevel_ = updateTopLevel ({Username2, NewUserLevel2}, NewTopLevel),
             AuxMap = maps:put( Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
             NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
-            estado (NewMap, Waiting)
-            ;
-        {tops, From} ->
-            List = maps:to_list(Users_Score),
-            GamesF = fun ({_, {GamesWon1, _}}, {_, {GamesWon2, _}}) -> GamesWon1 > GamesWon2 end,
-            LevelsF = fun ({_, {_, Level1}}, {_, {_, Level2}}) -> Level1 > Level2 end,
-            GamesTop = lists:sort(GamesF, List),
-            LevelsTop = lists:sort(LevelsF, List),
-            From ! {tops, {GamesTop, LevelsTop}},
-            estado (Users_Score, Waiting)
+            estado (NewMap, Waiting, NewTopScore_, NewTopLevel_)
     end
 .
 
@@ -123,11 +123,12 @@ processKeyPressData( Data ) ->
     %% Do your thing Nunaroo :P
     %% Tem que retornar "w", "a" ou "d". Ou de alguma forma extrair algo do género
     %% No updateWithKeyPress eu também estou a verificar a tecla
-    %St = string:tokens(Data, " "),
-{}.
+    Key = re:replace(Data, "(^\\s+)|(\\s+$)", "", [global,{return,list}]),
+    io:format("Carregou na tecla ~p~n", [Key]),
+    Key.
 
 
-gameManager(State)->
+gameManager(State, TimeStarted)->
     io:format("Game Manager a correr ~n"),
     % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
@@ -137,23 +138,29 @@ gameManager(State)->
             KeyPressed = processKeyPressData( Data ),
             { SomeoneLost, WhoLost } = checkLosses(State),
             if
-                SomeoneLost -> gameManager(State); % TODO: handle end game
+                SomeoneLost -> gameManager(State, TimeStarted); % TODO: handle end game
                 true ->
                     NewState = updateWithKeyPress(State, KeyPressed, From),
-                    gameManager(NewState)
+                    gameManager(NewState, TimeStarted)
             end;
-        {leave, From} -> % O que é isto?
+        {leave, From} ->
             {}
+            %Tratar da derrota e do endGame
             ;
         {refresh, From} ->
             io:format("Entrei no ramo refresh ~n"),
             { SomeoneLost, WhoLost } = checkLosses(State),
             NewState = update(State),
-            %io:format("~p~n", [tuple_to_list(NewState)]),
-            Res = formatState(NewState),
-            %io:format("~p~n",[Res]),
-            From ! back,
-            gameManager(NewState)
+            Res = formatState(NewState, TimeStarted),
+            io:format("Novo estado : ~p~n",[Res]),
+            gameManager(NewState, TimeStarted);
+
+        {addReds, From} ->
+            {P1, P2, GreenCreatures, RedCreatures, ArenaSize } = State,
+            io:format("Vou Adicionar uma criatura vermelha~n"),
+            Creature = newCreature(r),
+            gameManager({P1, P2, GreenCreatures, RedCreatures ++ [Creature], ArenaSize}, TimeStarted)
+
     end.
 
 
@@ -167,10 +174,45 @@ refreshTimer (Pid) ->
     Time = 40,
     timer:send_after( Time, Pid, {refresh, self()} ),
     receive
-        back ->
+        after Time ->
             refreshTimer(Pid)
     end
     .
+
+addReds (Pid) ->
+    io:format("Red Ativo ~n"),
+    Time = 10000,
+    timer:send_after( Time, Pid, {addReds, self()} ),
+    receive
+        after Time ->
+            addReds(Pid)
+    end
+    .
+
+updateTopScore ({User, Score}, []) -> [{User, Score}];
+updateTopScore ({User, Score}, [ H = {User1, Score1} | T])->
+    if
+        Score > Score1 ->
+            NewList = [{User, Score}, {User1, Score1}],
+            Res = NewList ++ T,
+            Res;
+        true ->
+            [H] ++ updateTopScore({User, Score}, T)
+    end
+    .
+
+updateTopLevel ({User, Level}, []) -> [{User, Level}];
+updateTopLevel ({User, Level}, [ H = {User1, Level1} | T])->
+    if
+        Level > Level1 ->
+            NewList = [{User, Level}, {User1, Level1}],
+            Res = NewList ++ T,
+            Res;
+        true ->
+            [H] ++ updateTopLevel ({User, Level}, T)
+    end
+    .
+
 
 
 
@@ -273,7 +315,7 @@ checkOutsideArena(P1, P2, ArenaSize) ->
         true -> {false, none}
     end.
 
-formatState(State) ->
+formatState(State, TimeStarted) ->
     %P1 and P2 contain the Player objects, Player1 and Player 2 contain {Username, UserProcess}
     %"elisio",1,2, 0,0,20,1,2.25,0.55,20,2,0.2,0.1,100;
     % "\n",1,2, 0,0,20,2,2.25,0.55,20,2,0.2,0.1,100;
@@ -285,7 +327,8 @@ formatState(State) ->
     { {P1, {Username1, _}}, {P2, {Username2, _}}, GreenCreatures, RedCreatures, Size} = State,
     User1 = formatPlayer(P1, Username1),
     User2 = formatPlayer(P2, Username2),
-    io:format("User1 : ~p~n",[User1]),
+    Score = (timer:now_diff(erlang:timestamp(), TimeStarted)) / 1000,
+    %io:format("User1 : ~p~n",[User1]),
 
     {Green1, Green2} = GreenCreatures,
     GreenCreaturesLen = 2,
@@ -293,16 +336,16 @@ formatState(State) ->
     GreenCreaturesData = string:join(GreenCreaturesAux, ","),
 
 
-    io:format("Green : ~p~n",[GreenCreaturesData]),
+    %io:format("Green : ~p~n",[GreenCreaturesData]),
 
     RedCreaturesLen = length(RedCreatures),
     RedCreaturesAux = [formatCreatures(Creature) || Creature <- RedCreatures],
     RedCreaturesData = string:join(RedCreaturesAux, ","),
 
 
-    io:format("Red : ~p~n",[RedCreaturesData]),
-
-    Result = User1 ++ ";" ++
+    %io:format("Red : ~p~n",[RedCreaturesData]),
+    % CENA NOVA!!!!!
+    Result = float_to_list(Score, [{decimals, 3}]) ++ ";" ++ User1 ++ ";" ++
              User2 ++ ";" ++
              integer_to_list(GreenCreaturesLen) ++ ";" ++
              GreenCreaturesData ++ ";" ++
