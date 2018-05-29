@@ -10,7 +10,7 @@ newCreature(Type) ->
     Velocity = 1,
     %Variables
     Position = {1,2},
-    Direction = 0,
+    Direction = {0,0},
     DesiredDirection = {3,4},
     Size = 50,
 
