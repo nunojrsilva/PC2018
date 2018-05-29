@@ -280,7 +280,7 @@ formatState(State) ->
     % 1,2, 0,3,4, 50, g,1;
     % 1;
     % 1,2, 0,3,4, 50, g,1;
-    { {P1, {Username1, _}, {P2, Username2}, GreenCreatures, RedCreatures, Size}} = State,
+    { {P1, {Username1, _}}, {P2, {Username2, _}}, GreenCreatures, RedCreatures, Size} = State,
     User1 = formatPlayer(P1, Username1),
     User2 = formatPlayer(P2, Username2),
 
@@ -310,31 +310,32 @@ formatState(State) ->
     Result.
 
 formatCreatures(Creature) ->
-    {{X, Y}, Direction, {Dx, Dy}, Size, Type, Velocity} = Creature,
-    Result = integer_to_list(X) ++ "," ++
-             integer_to_list(Y) ++ "," ++
-             integer_to_list(Direction) ++ "," ++
-             integer_to_list(Dx) ++ "," ++
-             integer_to_list(Dy) ++ "," ++
-             integer_to_list(Size) ++ "," ++
+    {{X, Y}, {DirX, DirY}, {Dx, Dy}, Size, Type, Velocity} = Creature,
+    Result = float_to_list(X) ++ "," ++
+             float_to_list(Y) ++ "," ++
+             float_to_list(DirX) ++ "," ++
+             float_to_list(DirY) ++ "," ++
+             float_to_list(Dx) ++ "," ++
+             float_to_list(Dy) ++ "," ++
+             float_to_list(Size) ++ "," ++
              Type ++ "," ++
-             integer_to_list(Velocity),
+            float_to_list(Velocity),
     Result.
 
 formatPlayer(P1, Username1) ->
     {{P1x, P1y}, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
     User1 = Username1 ++ "," ++
-            integer_to_list(P1x) ++ "," ++
-            integer_to_list(P1y) ++ "," ++
-            integer_to_list(P1Direction) ++ "," ++
-            integer_to_list(P1Velocity) ++ "," ++
-            integer_to_list(P1Energy) ++ "," ++
-            integer_to_list(P1Type) ++ "," ++
-            integer_to_list(P1FrontAcceleration) ++ "," ++
-            integer_to_list(P1AngularVelocity) ++ "," ++
-            integer_to_list(P1MaxEnergy) ++ "," ++
-            integer_to_list(P1EnergyWaste) ++ "," ++
-            integer_to_list(P1EnergyGain) ++ "," ++
-            integer_to_list(P1Drag) ++ "," ++
-            integer_to_list(P1Size),
+            float_to_list(P1x) ++ "," ++
+            float_to_list(P1y) ++ "," ++
+            float_to_list(P1Direction) ++ "," ++
+            float_to_list(P1Velocity) ++ "," ++
+            float_to_list(P1Energy) ++ "," ++
+            float_to_list(P1Type) ++ "," ++
+            float_to_list(P1FrontAcceleration) ++ "," ++
+            float_to_list(P1AngularVelocity) ++ "," ++
+            float_to_list(P1MaxEnergy) ++ "," ++
+            float_to_list(P1EnergyWaste) ++ "," ++
+            float_to_list(P1EnergyGain) ++ "," ++
+            float_to_list(P1Drag) ++ "," ++
+            float_to_list(P1Size),
     User1.
