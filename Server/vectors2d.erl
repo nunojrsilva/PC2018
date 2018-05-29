@@ -13,8 +13,6 @@ normalizeVector(Vector) ->
     { X/Divisor, Y/Divisor }.
 
 halfWayVector(Vector1, Vector2) ->
-    io:fwrite("Argumentos do halfWayVector : ~p",[Vector1]),
-    io:fwrite("Argumentos do halfWayVector : ~p",[Vector2]),
     {X1, Y1} = Vector1,
     {X2, Y2} = Vector2,
     { (X1 + X2)/2, (Y1 + Y2)/2}.

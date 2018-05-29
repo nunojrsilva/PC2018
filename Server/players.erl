@@ -16,7 +16,7 @@ newPlayer(Type) ->
     %Variables
     Position = {1.0,2.0},
     Direction = 0.0,
-    Velocity = 0.0,
+    Velocity = 20.0,
     Energy = 20.0,
 
     {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
@@ -62,13 +62,18 @@ updatePlayers(P1, P2, GreenColisions1, GreenColisions2) ->
     % P2PositionOffset = {0,0},
     % P2EnergyToAdd = 0,
 
-    Distance = distanceBetween(P1Position, P2Position), %Porque é que precisamos disso?
+    Distance = distanceBetween(P1Position, P2Position), % Falta ter em conta a força entre players
     VectorP1toP2 = subtractVectors(P1Position, P2Position),
-    DirectionVecP1 = multiplyVector({-cos(P1Direction) * P1Velocity, -sin(P1Direction)* P1Velocity}, Distance),
-    DirectionVecP2 = multiplyVector({cos(P2Direction) * P2Velocity, sin(P2Direction)* P2Velocity}, Distance),
+    if
+        Distance == 0 -> Divisor = 0.0;
+        true          -> Divisor = (1.0/(pow(Distance,2.0)))
+    end,
 
-    NewP1Position = addPairs( VectorP1toP2, addPairs(P1Position, DirectionVecP1)),
-    NewP2Position = addPairs(VectorP1toP2, addPairs(P2Position, DirectionVecP2)),
+    DirectionVecP1 = multiplyVector({cos(P1Direction), sin(P1Direction)}, P1Velocity),
+    DirectionVecP2 = multiplyVector({cos(P2Direction), sin(P2Direction)}, P2Velocity),
+
+    NewP1Position = addPairs( multiplyVector(VectorP1toP2, -Divisor), addPairs(P1Position, DirectionVecP1)),
+    NewP2Position = addPairs( multiplyVector(VectorP1toP2, Divisor), addPairs(P2Position, DirectionVecP2)),
 
     if
         P1Velocity > 0.0 -> NewP1Velocity = P1Velocity - P1Drag;
