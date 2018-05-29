@@ -327,7 +327,7 @@ formatState(State, TimeStarted) ->
     { {P1, {Username1, _}}, {P2, {Username2, _}}, GreenCreatures, RedCreatures, Size} = State,
     User1 = formatPlayer(P1, Username1),
     User2 = formatPlayer(P2, Username2),
-    Score = (timer:now_diff(erlang:timestamp(), TimeStarted)) / 1000,
+    Score = (timer:now_diff(erlang:timestamp(), TimeStarted)) / 1000000,
     %io:format("User1 : ~p~n",[User1]),
 
     {Green1, Green2} = GreenCreatures,
