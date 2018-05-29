@@ -24,7 +24,7 @@
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
-    estado( #{}, [], #{}, #{})
+    estado( #{}, [])
     .
 
 estado(Users_Score, Waiting) ->
@@ -338,8 +338,3 @@ formatPlayer(P1, Username1) ->
             integer_to_list(P1Drag) ++ "," ++
             integer_to_list(P1Size),
     User1.
-
-start() ->
-    % Nao sei se será necessária esta funcao, vamos manter just in case
-    estado( #{}, [])
-    .

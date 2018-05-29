@@ -39,8 +39,8 @@ updateCreature(Creature, P1, P2) ->
 checkRedColisions( Player1, Player2, RedCreatures ) ->
     { P1, ID_P1 } = Player1,
     { P2, ID_P2 } = Player2,
-    ColisionsP1 = checkColision(P1, RedCreatures),
-    ColisionsP2 = checkColision(P2, RedCreatures),
+    ColisionsP1 = checkColisionsList(P1, RedCreatures),
+    ColisionsP2 = checkColisionsList(P2, RedCreatures),
     if
         ColisionsP1 == true -> {true, ID_P1};
         ColisionsP2 == true -> {true, ID_P2};
