@@ -123,8 +123,8 @@ processKeyPressData( Data ) ->
     %% Do your thing Nunaroo :P
     %% Tem que retornar "w", "a" ou "d". Ou de alguma forma extrair algo do género
     %% No updateWithKeyPress eu também estou a verificar a tecla
-    {}.
-
+    %St = string:tokens(Data, " "),
+{}.
 
 
 gameManager(State)->
@@ -149,8 +149,9 @@ gameManager(State)->
             io:format("Entrei no ramo refresh ~n"),
             { SomeoneLost, WhoLost } = checkLosses(State),
             NewState = update(State),
+            %io:format("~p~n", [tuple_to_list(NewState)]),
             Res = formatState(NewState),
-            io:format("~p~n",[Res]),
+            %io:format("~p~n",[Res]),
             From ! back,
             gameManager(NewState)
     end.
@@ -160,10 +161,11 @@ gameManager(State)->
 refreshTimer (Pid) ->
     %Step needs to be an integer!
     io:format("Refresh ativo ~n"),
-    FramesPerSecond = 40,
-    Step = 1000/FramesPerSecond,
-    Pid ! {refresh, 5},
-    timer:send_after( Step, Pid, {refresh, self()} ),
+    %FramesPerSecond = 40,
+    %Step = 1000/FramesPerSecond,
+    %NumStep = integer_to_float(Step),
+    Time = 40,
+    timer:send_after( Time, Pid, {refresh, self()} ),
     receive
         back ->
             refreshTimer(Pid)
@@ -283,23 +285,22 @@ formatState(State) ->
     { {P1, {Username1, _}}, {P2, {Username2, _}}, GreenCreatures, RedCreatures, Size} = State,
     User1 = formatPlayer(P1, Username1),
     User2 = formatPlayer(P2, Username2),
+    io:format("User1 : ~p~n",[User1]),
 
-    F = fun(Elem, Accum) ->
-        if
-            Accum == "" ->
-                Elem;
-            true ->
-                Accum ++ ";" ++ Elem
-        end
-    end,
+    {Green1, Green2} = GreenCreatures,
+    GreenCreaturesLen = 2,
+    GreenCreaturesAux = [formatCreatures(Green1), formatCreatures(Green2)],
+    GreenCreaturesData = string:join(GreenCreaturesAux, ","),
 
-    GreenCreaturesLen = length(GreenCreatures),
-    GreenCreaturesAux = [formatCreatures(Creature) || Creature <- GreenCreatures],
-    GreenCreaturesData = lists:foldl(F, "", GreenCreaturesAux),
+
+    io:format("Green : ~p~n",[GreenCreaturesData]),
 
     RedCreaturesLen = length(RedCreatures),
     RedCreaturesAux = [formatCreatures(Creature) || Creature <- RedCreatures],
-    RedCreaturesData = lists:foldl(F, "", RedCreaturesAux),
+    RedCreaturesData = string:join(RedCreaturesAux, ","),
+
+
+    io:format("Red : ~p~n",[RedCreaturesData]),
 
     Result = User1 ++ ";" ++
              User2 ++ ";" ++
@@ -311,31 +312,37 @@ formatState(State) ->
 
 formatCreatures(Creature) ->
     {{X, Y}, {DirX, DirY}, {Dx, Dy}, Size, Type, Velocity} = Creature,
-    Result = float_to_list(X) ++ "," ++
-             float_to_list(Y) ++ "," ++
-             float_to_list(DirX) ++ "," ++
-             float_to_list(DirY) ++ "," ++
-             float_to_list(Dx) ++ "," ++
-             float_to_list(Dy) ++ "," ++
-             float_to_list(Size) ++ "," ++
-             Type ++ "," ++
-            float_to_list(Velocity),
+    if
+        Type == g ->
+            StrType = "g";
+        true ->
+            StrType = "r"
+    end,
+    Result = float_to_list(X, [{decimals, 3}]) ++ "," ++
+             float_to_list(Y, [{decimals, 3}]) ++ "," ++
+             float_to_list(DirX, [{decimals, 3}]) ++ "," ++
+             float_to_list(DirY, [{decimals, 3}]) ++ "," ++
+             float_to_list(Dx, [{decimals, 3}]) ++ "," ++
+             float_to_list(Dy, [{decimals, 3}]) ++ "," ++
+             float_to_list(Size, [{decimals, 3}]) ++ "," ++
+             StrType ++ "," ++
+            float_to_list(Velocity, [{decimals, 3}]),
     Result.
 
 formatPlayer(P1, Username1) ->
     {{P1x, P1y}, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
     User1 = Username1 ++ "," ++
-            float_to_list(P1x) ++ "," ++
-            float_to_list(P1y) ++ "," ++
-            float_to_list(P1Direction) ++ "," ++
-            float_to_list(P1Velocity) ++ "," ++
-            float_to_list(P1Energy) ++ "," ++
-            float_to_list(P1Type) ++ "," ++
-            float_to_list(P1FrontAcceleration) ++ "," ++
-            float_to_list(P1AngularVelocity) ++ "," ++
-            float_to_list(P1MaxEnergy) ++ "," ++
-            float_to_list(P1EnergyWaste) ++ "," ++
-            float_to_list(P1EnergyGain) ++ "," ++
-            float_to_list(P1Drag) ++ "," ++
-            float_to_list(P1Size),
+            float_to_list(P1x, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1y, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1Direction, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1Velocity, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1Energy, [{decimals, 3}]) ++ "," ++
+            integer_to_list(P1Type) ++ "," ++
+            float_to_list(P1FrontAcceleration, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1AngularVelocity, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1MaxEnergy, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1EnergyWaste, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1EnergyGain, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1Drag, [{decimals, 3}]) ++ "," ++
+            float_to_list(P1Size, [{decimals, 3}]),
     User1.
