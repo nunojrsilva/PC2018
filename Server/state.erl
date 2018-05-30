@@ -403,7 +403,7 @@ formatState(State, TimeStarted) ->
     %io:format("Red : ~p~n",[RedCreaturesData]),
     % CENA NOVA!!!!!
     Result = float_to_list(Score, [{decimals, 3}]) ++ "," ++ User1 ++ "," ++
-             User2 ++ ";" ++
+             User2 ++ "," ++
              integer_to_list(GreenCreaturesLen) ++ "," ++
              GreenCreaturesData ++ "," ++
              integer_to_list(RedCreaturesLen) ++ "," ++
