@@ -165,7 +165,11 @@ public class Reader extends Thread {
     );
 
     reds = Float.parseFloat( list[i++] );
+<<<<<<< HEAD
     int count = 49;
+=======
+    int count = i;
+>>>>>>> 900a43604b57d7a52bc10cb558b8c14b546ce4ac
     ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
     for( int j = 0; j < reds; j++){
       red.add( a.new Creature(
@@ -211,8 +215,8 @@ public class Reader extends Thread {
           }else{
             System.out.println("readSocket leu null do socket");
           }
-          ArrayList<String> floatList ;
-          floatList = convertToFloat(splitList);
+          // ArrayList<String> floatList ;
+          // floatList = convertToFloat(splitList);
 
           if( splitList.length > 1 ){
               if( this.firstState == 0){

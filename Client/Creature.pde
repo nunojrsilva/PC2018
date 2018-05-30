@@ -33,7 +33,7 @@ class Creature {
     this.position         = new PVector(posX, posY);
     this.direction        = new PVector(dirX,dirY);
     this.desiredDirection = new PVector(dx,dy);
-    if( type == "g")
+    if( type.equals("g") )
       this.type = 0;
     else
       this.type = 1;
@@ -45,7 +45,7 @@ class Creature {
     this.position         = new PVector(posX, posY);
     this.direction        = new PVector(dirX,dirY);
     this.desiredDirection = new PVector(dx,dy);
-    if( type == "g")
+    if( type.equals("g") == true )
       this.type = 0;
     else
       this.type = 1;
