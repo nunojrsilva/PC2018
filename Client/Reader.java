@@ -165,7 +165,7 @@ public class Reader extends Thread {
     );
 
     reds = Float.parseFloat( list[i++] );
-    int count = 48;
+    int count = i;
     ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
     for( int j = 0; j < reds; j++){
       red.add( a.new Creature(
