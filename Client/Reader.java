@@ -101,7 +101,7 @@ public class Reader extends Thread {
   }
 
   public void updateState(String[] list){
-    int i = 1;
+    int i = 2;
     Client.PlayerAvatar p1 = a.new PlayerAvatar(
       Float.parseFloat(list[i++]),
       Float.parseFloat(list[i++]),
@@ -115,10 +115,10 @@ public class Reader extends Thread {
       Float.parseFloat(list[i++]),
       Float.parseFloat(list[i++]),
       Float.parseFloat(list[i++]),
-      Float.parseFloat(list[i++]) 
+      Float.parseFloat(list[i++])
     );
     i++;
-    Client.PlayerAvatar p2 = a.new PlayerAvatar( 
+    Client.PlayerAvatar p2 = a.new PlayerAvatar(
      Float.parseFloat(list[i++]),
      Float.parseFloat(list[i++]),
      Float.parseFloat(list[i++]),
@@ -131,52 +131,52 @@ public class Reader extends Thread {
      Float.parseFloat(list[i++]),
      Float.parseFloat(list[i++]),
      Float.parseFloat(list[i++]),
-     Float.parseFloat(list[i++]) 
+     Float.parseFloat(list[i++])
     );
     float greens, reds;
 
     greens = Float.parseFloat(list[i++]);
     ArrayList<Client.Creature> green = new ArrayList<Client.Creature>();
 
-    green.add( a.new Creature( 
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
+    green.add( a.new Creature(
       Float.parseFloat(list[i++]),
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
-      list[i++], 
-      Float.parseFloat(list[i++]) 
-      ) 
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      list[i++],
+      Float.parseFloat(list[i++])
+      )
     );
 
-    green.add( a.new Creature( 
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
+    green.add( a.new Creature(
       Float.parseFloat(list[i++]),
-      Float.parseFloat(list[i++]), 
-      Float.parseFloat(list[i++]), 
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
+      Float.parseFloat(list[i++]),
       list[i++],
-      Float.parseFloat(list[i++]) 
+      Float.parseFloat(list[i++])
       )
     );
 
     reds = Float.parseFloat( list[i++] );
-    int count = 48;
+    int count = 49;
     ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
     for( int j = 0; j < reds; j++){
       red.add( a.new Creature(
-        Float.parseFloat(list[count++]), 
-        Float.parseFloat(list[count++]), 
         Float.parseFloat(list[count++]),
-        Float.parseFloat(list[count++]), 
         Float.parseFloat(list[count++]),
-        Float.parseFloat(list[count++]), 
-        Float.parseFloat(list[count++]), 
-        list[count++], 
+        Float.parseFloat(list[count++]),
+        Float.parseFloat(list[count++]),
+        Float.parseFloat(list[count++]),
+        Float.parseFloat(list[count++]),
+        Float.parseFloat(list[count++]),
+        list[count++],
         Float.parseFloat(list[count++])
         )
       );
@@ -201,6 +201,8 @@ public class Reader extends Thread {
             e.printStackTrace();
             System.exit(1);
           }
+
+
           if( this.message != null){
             System.out.println(this.message);
             splitList = this.message.split(",");
