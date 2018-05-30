@@ -135,15 +135,18 @@ public class Reader extends Thread {
           String[] splitList = null;
           try{
             this.message = in.readLine();
-            System.out.println(this.message);
-            splitList = this.message.split(",");
           }catch(Exception e){
             e.printStackTrace();
             System.exit(1);
           }
+          if( this.message != null){
+            System.out.println(this.message);
+            splitList = this.message.split(",");
 
-          System.out.println("readSocket - " + splitList.length + " " + this.message);
-
+            System.out.println("readSocket - " + splitList.length + " " + this.message);
+          }else{
+            System.out.println("readSocket leu null do socket");
+          }
           ArrayList<Float> floatList ;
           floatList = convertToFloat(splitList);
 

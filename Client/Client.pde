@@ -8,6 +8,7 @@ ControlP5 cp5;
 Group login;
 Group game;
 Group result;
+Group label;
 
 int arenaWidth = 1200;
 int arenaHeight = 800;
@@ -50,6 +51,7 @@ void setup() {
   login      = cp5.addGroup("login");
   game       = cp5.addGroup("game");
   result     = cp5.addGroup("result");
+  label      = cp5.addGroup("label");
   PFont font = createFont("Arial", 12);
 
   connect();
@@ -203,8 +205,8 @@ void draw() {
 
     case waiting_screen:
       cp5.getGroup("login").hide();
-      background(0);
       cp5.getGroup("label").show();
+      background(0);
 
       server_connection_label.setValue("Waiting for your oponent").show();
       System.out.print("Client - Waiting for your oponent. gameState " + gameState);
