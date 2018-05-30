@@ -123,7 +123,7 @@ user(Sock, Username) ->
 userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager
     receive
         {line, Data} -> % Recebemos alguma coisa do processo GameManager
-            io:format("Sending ~p to the client",[Data]),
+            %io:format("Sending ~p to the client",[Data]),
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
