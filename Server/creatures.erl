@@ -9,7 +9,7 @@ newCreature(Type) ->
     %Constants
     Velocity = 1.0,
     %Variables
-    Position = {random:uniform(1200),random:uniform(800)},
+    Position = {float(rand:uniform(1200)),float(rand:uniform(800))},
     Direction = {0.0,0.0},
     DesiredDirection = {3.0,4.0},
     Size = 50.0,
