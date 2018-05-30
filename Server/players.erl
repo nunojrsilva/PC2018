@@ -14,9 +14,9 @@ newPlayer(Type) ->
     Drag = 0.1,
     Size = 100.0,
     %Variables
-    Position = {1.0,2.0},
+    Position = {random:uniform(1200),random:uniform(800)},
     Direction = 0.0,
-    Velocity = 20.0,
+    Velocity = 1.0,
     Energy = 20.0,
 
     {Position, Direction, Velocity, Energy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
