@@ -219,7 +219,8 @@ endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
 
     end,
     io:format("Enviar mensagem ao estado e aos users~n"),
-    Pid1 ! Pid2 ! {gameEnd, Result},
+    Res = formatResult(Result),
+    Pid1 ! Pid2 ! {gameEnd, Res},
     PidState ! {gameEnd, Result, self() }.
 
 %Não sei se funciona mas em principio sim , o processo e o mesmo
@@ -235,7 +236,7 @@ refreshTimer (Pid) ->
     %FramesPerSecond = 40,
     %Step = 1000/FramesPerSecond,
     %NumStep = integer_to_float(Step),
-    Time = 100,
+    Time = 10,
     receive
         stop ->
             {}
@@ -371,6 +372,11 @@ checkOutsideArena(P1, P2, ArenaSize) ->
         (P2_X < 0) or (P2_X > ArenaX) or (P2_Y < 0) or (P2_Y > ArenaY) -> {true, ID_P2};
         true -> {false, none}
     end.
+
+
+formatResult({{U1, S1}, {U2, S2}}) ->
+    Res = U1 ++ "-" ++ float_to_list(S1, [{decimals, 3}] ) ++ U2 ++ "-" ++ float_to_list(S2, [{decimals, 3}] ),
+    Res.
 
 formatState(State, TimeStarted) ->
     %P1 and P2 contain the Player objects, Player1 and Player 2 contain {Username, UserProcess}
