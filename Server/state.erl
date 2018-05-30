@@ -339,8 +339,8 @@ checkOutsideArena(P1, P2, ArenaSize) ->
     { P1_X, P1_Y } = P1Position,
     { P2_X, P2_Y } = P2Position,
     if
-        (P1_X < 0) or (P1_X < ArenaX) or (P1_Y < 0) or (P1_Y < ArenaY) -> {true, ID_P1};
-        (P2_X < 0) or (P2_X < ArenaX) or (P2_Y < 0) or (P2_Y < ArenaY) -> {true, ID_P2};
+        (P1_X < 0) or (P1_X > ArenaX) or (P1_Y < 0) or (P1_Y > ArenaY) -> {true, ID_P1};
+        (P2_X < 0) or (P2_X > ArenaX) or (P2_Y < 0) or (P2_Y > ArenaY) -> {true, ID_P2};
         true -> {false, none}
     end.
 
