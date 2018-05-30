@@ -101,7 +101,7 @@ public class Reader extends Thread {
   }
 
   public void updateState(String[] list){
-    int i = 1;
+    int i = 2;
     Client.PlayerAvatar p1 = a.new PlayerAvatar(
       Float.parseFloat(list[i++]),
       Float.parseFloat(list[i++]),
