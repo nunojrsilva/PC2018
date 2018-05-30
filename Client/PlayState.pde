@@ -62,7 +62,8 @@ class PlayState {
 
     this.timeSlice = millis();
   }
-  void update(PlayerAvatar a, PlayerAvatar b, Creature[] green, ArrayList<Creature> red, float score1, float score2) {
+
+  void update(PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
     this.thisPlayer = a;
     this.adversary  = b;
 

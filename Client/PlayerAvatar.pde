@@ -55,7 +55,6 @@ class PlayerAvatar {
     this.l = new ReentrantLock();
   }
 
-
   void update(float posX, float posY, float direction, float velocity, float energy, float type, float frontAcceleration, float angularVelocity, float maxEnergy, float energyWaste, float energyGain, float drag, float size) {
     this.type = type;
     this.position  = new PVector(posX, posY);
@@ -69,8 +68,9 @@ class PlayerAvatar {
     this.energyWaste       = energyWaste;
     this.energyGain        = energyGain;
     this.drag              = drag;
-    this.l = new ReentrantLock();
+    // this.l = new ReentrantLock();
   }
+
 
   void keyTyped() {
     if( key == 'w' ) {

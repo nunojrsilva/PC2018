@@ -41,13 +41,16 @@ class Creature {
     this.l = new ReentrantLock();
   }
 
-  void update( float posX, float posY, float dirX, float dirY, float dx, float dy, float size, float type, float velocity ) {
+  void update( float posX, float posY, float dirX, float dirY, float dx, float dy, float size, String type, float velocity ) {
     this.position         = new PVector(posX, posY);
     this.direction        = new PVector(dirX,dirY);
     this.desiredDirection = new PVector(dx,dy);
-    this.type             = type;
+    if( type == "g")
+      this.type = 0;
+    else
+      this.type = 1;
     this.velocity         = velocity;
-    this.l = new ReentrantLock();
+    // this.l = new ReentrantLock();
   }
 
   void calcDirection() {
