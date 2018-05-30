@@ -116,7 +116,7 @@ public class Reader extends Thread {
     reds = list.get(i++);
     int count = 48;
     ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
-    for( int i = 0; i < reds; i++){
+    for( int j = 0; j < reds; j++){
       red.add( a.new Creature(list.get(count++), list.get(count++), list.get(count++), list.get(count++), list.get(count++),list.get(count++), list.get(count++), list.get(count++), list.get(count++) ));
     }
 
@@ -135,13 +135,14 @@ public class Reader extends Thread {
           String[] splitList = null;
           try{
             this.message = in.readLine();
+            System.out.println(this.message);
             splitList = this.message.split(",");
           }catch(Exception e){
             e.printStackTrace();
             System.exit(1);
           }
 
-          System.out.println(splitList.length + " " + this.message);
+          System.out.println("readSocket - " + splitList.length + " " + this.message);
 
           ArrayList<Float> floatList ;
           floatList = convertToFloat(splitList);
@@ -152,10 +153,10 @@ public class Reader extends Thread {
                 this.l.lock();
                 try {
                   this.ready = true;
+                  this.wait.signal();
                 }finally{
                   this.l.unlock();
                 }
-                this.wait.signal();
               }
               updateState(floatList);
           }else // end if start

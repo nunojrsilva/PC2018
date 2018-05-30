@@ -156,7 +156,7 @@ void setup() {
       })
      ;
   server_connection_label = cp5.addTextlabel("Connecting to server")
-                               .setGroup(login)
+                               .setGroup("label")
                                .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
                                // .setColor(100)
                                .setFont(font)
@@ -204,10 +204,10 @@ void draw() {
     case waiting_screen:
       cp5.getGroup("login").hide();
       background(0);
-      // cp5.getController("Connecting to server").show();
+      cp5.getGroup("label").show();
 
       server_connection_label.setValue("Waiting for your oponent").show();
-      System.out.print("Waiting for your oponent. gameState " + gameState);
+      System.out.print("Client - Waiting for your oponent. gameState " + gameState);
 
       readSocket.l.lock();
       try {
