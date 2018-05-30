@@ -14,7 +14,7 @@ newPlayer(Type) ->
     Drag = 0.1,
     Size = 100.0,
     %Variables
-    Position = {random:uniform(1200),random:uniform(800)},
+    Position = {float(rand:uniform(1200)),float(rand:uniform(800))},
     Direction = 0.0,
     Velocity = 1.0,
     Energy = 20.0,
