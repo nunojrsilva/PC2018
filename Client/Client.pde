@@ -44,7 +44,7 @@ void setup() {
   state = new PlayState(assets);
   fullScreen();
   // size(800,800);
-  frameRate(40);
+  frameRate(60);
   pixelDensity( displayDensity() );
 
   cp5        = new ControlP5(this);
