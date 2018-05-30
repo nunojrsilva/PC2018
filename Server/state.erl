@@ -45,7 +45,6 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                             Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self()) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
-                            Game ! {auxProcess, [Timer, SpawnReds]},
                             UserProcess ! UserProcessQueue  ! {go, Game},
                             estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
                     end
@@ -62,7 +61,6 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                             Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self() ) end),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
-                            Game ! {auxProcess, [Timer, SpawnReds]},
                             UserProcess ! UserProcessQueue ! {go, Game},
                             estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
                     end
@@ -142,15 +140,16 @@ gameManager(State, TimeStarted, PidState)->
             { SomeoneLost, WhoLost } = checkLosses(State),
             if
                 SomeoneLost ->
-                    io:format("SomeoneLost~n"),
+                    io:format("Someone Lost~n"),
                     endGame(State, TimeStarted, erlang:timestamp(), WhoLost, PidState); %gameManager(State, TimeStarted); % TODO: handle end game
                 true ->
-
+                    io:format("Update with KeyPress~n"),
                     NewState = updateWithKeyPress(State, KeyPressed, From),
                     gameManager(NewState, TimeStarted, PidState)
             end;
         {leave, From} ->
-            {P1, P2, GreenCreatures, RedCreatures, ArenaSize } = State,
+            io:format("Alguem enviou leave"),
+            {P1, P2, _, _, _ } = State,
             {_, {User1, Pid1}} = P1,
             {_, {User2, Pid2}} = P2,
             if
@@ -160,15 +159,22 @@ gameManager(State, TimeStarted, PidState)->
                     endGame(State, TimeStarted, erlang:timestamp(), {User2, Pid2}, PidState)
             end
             ;
-        {refresh, From} ->
+        {refresh, _} ->
             io:format("Entrei no ramo refresh ~n"),
             { SomeoneLost, WhoLost } = checkLosses(State),
-            NewState = update(State),
-            Res = formatState(NewState, TimeStarted),
-            io:format("Novo estado : ~p~n",[Res]),
-            gameManager(NewState, TimeStarted, PidState);
-
-        {addReds, From} ->
+            if
+                SomeoneLost ->
+                    io:format("alguem morreu no refresh do gameManager"),
+                    endGame(State, TimeStarted, erlang:timestamp(), WhoLost, PidState);
+                true ->
+                    NewState = update(State),
+                    Res = formatState(NewState, TimeStarted),
+                    io:format("Novo estado : ~p~n",[Res]),
+                    gameManager(NewState, TimeStarted, PidState)
+            end
+            ;
+        {addReds, _} ->
+            io:format("Entrei no addReds~n"),
             {P1, P2, GreenCreatures, RedCreatures, ArenaSize } = State,
             io:format("Vou Adicionar uma criatura vermelha~n"),
             Creature = newCreature(r),
@@ -178,8 +184,8 @@ gameManager(State, TimeStarted, PidState)->
 
 endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
     %Construir as pontuações
-    {{P1, {U1, PID_P1}}, {P2, {U2, PID_P2}}, _, _, _} = State,
-    {LoserUsername, LoserPid} = WhoLost,
+    {{_, {U1, _}}, {_, {U2, _}}, _, _, _} = State,
+    {LoserUsername, _} = WhoLost,
     Score = (timer:now_diff(TimeEnded, TimeStarted)) / 1000000,
     if
         LoserUsername == U1 ->
@@ -353,7 +359,7 @@ formatState(State, TimeStarted) ->
     % 1,2, 0,3,4, 50, g,1;
     % 1;
     % 1,2, 0,3,4, 50, g,1;
-    { {P1, {Username1, _}}, {P2, {Username2, _}}, GreenCreatures, RedCreatures, Size} = State,
+    { {P1, {Username1, _}}, {P2, {Username2, _}}, GreenCreatures, RedCreatures, _} = State,
     User1 = formatPlayer(P1, Username1),
     User2 = formatPlayer(P2, Username2),
     Score = (timer:now_diff(erlang:timestamp(), TimeStarted)) / 1000000,
