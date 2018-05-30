@@ -206,7 +206,7 @@ gameManager(State, TimeStarted, PidState)->
 
 endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
     %Construir as pontuações
-    {{_, {U1, _}}, {_, {U2, _}}, _, _, _} = State,
+    {{_, {U1, Pid1}}, {_, {U2, Pid2}}, _, _, _} = State,
     {LoserUsername, _} = WhoLost,
     Score = (timer:now_diff(TimeEnded, TimeStarted)) / 1000000,
     if
@@ -218,7 +218,8 @@ endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
             Result = {{U1, Score}, {U2, Score}}
 
     end,
-    io:format("Enviar mensagem ao estado~n"),
+    io:format("Enviar mensagem ao estado e aos users~n"),
+    Pid1 ! Pid2 ! {gameEnd, Result},
     PidState ! {gameEnd, Result, self() }.
 
 %Não sei se funciona mas em principio sim , o processo e o mesmo
@@ -406,7 +407,7 @@ formatState(State, TimeStarted) ->
              integer_to_list(GreenCreaturesLen) ++ "," ++
              GreenCreaturesData ++ "," ++
              integer_to_list(RedCreaturesLen) ++ "," ++
-             RedCreaturesData,
+             RedCreaturesData ++ "\n",
     Result.
 
 formatCreatures(Creature) ->
