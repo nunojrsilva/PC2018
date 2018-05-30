@@ -28,9 +28,10 @@ public class Writer {
       out = new PrintWriter(socket.getOutputStream());
     }catch(Exception e){
       e.printStackTrace();
-      return "Server offline";
+      System.out.println("Write Socket msg: Server offline");
     }
-    return "Server online";
+    System.out.println("Write Socket msg: Server online");
+    return "Write Socket msg: Server online";
   }
 
   public void disconnect() throws IOException{

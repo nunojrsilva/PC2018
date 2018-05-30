@@ -74,9 +74,9 @@ void setup() {
           password = cp5.get(Textfield.class,"Password").getText();
           server_connection_label.setValue(server_connection_status);
           try{
-
+            System.out.println(socket);
             if( server_connection_status.equals("Server offline") ){
-              // connect();
+              connect();
               System.out.println(server_connection_status);
             }else if( !server_connection_status.equals("Server offline") ){
 
@@ -197,8 +197,9 @@ void setup() {
     .setPosition(width/2 - button_width/2, arenaHeight + spacing_size )
     .setSize( button_width, fields_height )
     .onClick( new CallbackListener() {
-       public void controlEvent(CallbackEvent theEvent) {
-         gameState = result_screen;
+      public void controlEvent(CallbackEvent theEvent) {
+        writeSocket.login(username, password);
+        gameState = waiting_screen;
 
        }
     })
@@ -216,6 +217,7 @@ void draw() {
 
     case waiting_screen:
       cp5.getGroup("login").hide();
+      cp5.getGroup("result").hide();
       cp5.getGroup("label").show();
       background(0);
 
@@ -246,7 +248,7 @@ void draw() {
       background(0);
       cp5.getGroup("game").show();
 
-      background(255);
+      // background(255);
       translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
       image(assets.background,0,0);
       noFill();
@@ -342,12 +344,15 @@ void connect(){
   }catch(Exception e){
     e.printStackTrace();
     server_connection_status = "Server offline";
+    System.out.println("ggggggg");
     // server_connection_label.setValue("Server offline");
   }
+  System.out.println("aaaaaaa");
+  System.out.println(server_connection_status);
 
-  writeSocket = new Writer(socket);
-  server_connection_status = writeSocket.connect();
   if(!server_connection_status.equals("server offline") ){
+    writeSocket = new Writer(socket);
+    server_connection_status = writeSocket.connect();
     readSocket = new Reader(socket, state, this);
     readSocket.connect();
   }
