@@ -253,9 +253,16 @@ void draw() {
       stroke(0);
       rect(0, 0, arenaWidth, arenaHeight);
 
-      // state.prepareUpdate();
-      // state.update();
-      state.draw();
+      state.l.lock();
+      try{
+        state.prepareUpdate();
+        state.update();
+        state.draw();
+      } catch (Exception e){
+        e.printStackTrace();
+      } finally {
+        state.l.unlock();
+      }
       break;
 
 
