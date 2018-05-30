@@ -167,7 +167,7 @@ void setup() {
                                ;
   cp5.addButton("END GAME")
      .setGroup(game)
-     .setPosition(10,10)
+     .setPosition(width/2 - button_width/2, arenaHeight + spacing_size )
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() {
         public void controlEvent(CallbackEvent theEvent) {
@@ -279,7 +279,6 @@ void draw() {
       }
       break;
 
-
     default:
       break;
   }
@@ -287,6 +286,10 @@ void draw() {
 }
 
 void keyPressed() {
+  // if(key == TAB){
+  //   cp5.getController("Username").setFocus(false);
+  //   cp5.getController("Password").setFocus(true).clear();
+  // }
   if(gameState == game_screen){
     // state.keyTyped();
     // if( key == CODED ){
