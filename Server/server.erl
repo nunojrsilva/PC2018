@@ -124,6 +124,8 @@ userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e 
     receive
         {line, Data} -> % Recebemos alguma coisa do processo GameManager
             %io:format("Sending ~p to the client",[Data]),
+            %io:format("Data = ~p~n",[Data]),
+            %Bin = list_to_binary(Data),
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, Username, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
@@ -149,7 +151,10 @@ userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e 
                                     gen_tcp:send(Sock, <<"logout successful\n">>);
                                 _ ->
                                     gen_tcp:send(Sock,<<"logout error\n">>)
-                            end
-                        end
-                end
+                            end;
+                        _ ->
+                            io:format("Erro, deve escolher play_again ou logout~n"),
+                            user(Sock, Username)
+                    end
+            end
     end.
