@@ -57,4 +57,14 @@ public class Writer {
       System.exit(1);
     }
   }
+
+  public void send(String message){
+    try{
+      out.println(message);
+      out.flush();
+    }catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
+  }
 }

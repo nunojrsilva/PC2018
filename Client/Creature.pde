@@ -9,7 +9,7 @@ class Creature {
   PVector position;
   PVector direction;
   PVector desiredDirection;
-  float   type; // 0 for green 1 for red
+  int   type; // 0 for green 1 for red
 
   Lock l;
 
@@ -29,11 +29,14 @@ class Creature {
     this.l = new ReentrantLock();
   }
 
-  Creature( float posX, float posY, float dirX, float dirY, float dx, float dy, float size, float type, float velocity ) {
+  Creature( float posX, float posY, float dirX, float dirY, float dx, float dy, float size, String type, float velocity ) {
     this.position         = new PVector(posX, posY);
     this.direction        = new PVector(dirX,dirY);
     this.desiredDirection = new PVector(dx,dy);
-    this.type             = type;
+    if( type == "g")
+      this.type = 0;
+    else
+      this.type = 1;
     this.velocity         = velocity;
     this.l = new ReentrantLock();
   }
