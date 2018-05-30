@@ -1,6 +1,6 @@
 -module (server).
 -export ([start/0]).
--import (login_manager, [startLM/0,login/2, create_account/2]). %INCOMPLETO
+-import (login_manager, [startLM/0,login/2, create_account/2, logout/1]). %INCOMPLETO
 %-import (state,[]). %INCOMPLETO
 
 % Modulo que implementa um servidor para o jogo "Vaga Vermelha"
@@ -117,20 +117,39 @@ user(Sock, Username) ->
     receive % Bloqueia à espera da resposta do servidor
         {go, GameManager} ->
             io:format("Recebi go , vou para o GameManager"),
-            userOnGame(Sock, GameManager) % Entra em modo "game"
+            userOnGame(Sock, Username, GameManager) % Entra em modo "game"
     end.
 
-userOnGame(Sock, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager
+userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager
     receive
         {line, Data} -> % Recebemos alguma coisa do processo GameManager
             %io:format("Sending ~p to the client",[Data]),
             gen_tcp:send(Sock, Data),
-            userOnGame(Sock, GameManager);
+            userOnGame(Sock, Username, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
             GameManager ! {keyPressed, Data, self()}, % Precisamos de saber quem foi que premiu a tecla!
-            userOnGame(Sock, GameManager);
+            userOnGame(Sock, Username, GameManager);
         {tcp_closed, _} ->
             GameManager ! {leave, self()};
         {tcp_error, _} ->
-            GameManager ! {leave, self()}
+            GameManager ! {leave, self()};
+        {gameEnd, Result} ->
+            gen_tcp:send(Sock, Result),
+            receive
+                {tcp, _ , Data}->
+                    StrData = binary:bin_to_list(Data),
+                    Str = re:replace(StrData, "(^\\s+)|(\\s+$)", "", [global,{return,list}]),
+                    io:format("User said ~p~n",[Str]),
+                    case Str of
+                        "play_again" ->
+                            user(Sock, Username);
+                        "logout" ->
+                            case logout(Username) of
+                                ok ->
+                                    gen_tcp:send(Sock, <<"logout successful\n">>);
+                                _ ->
+                                    gen_tcp:send(Sock,<<"logout error\n">>)
+                            end
+                        end
+                end
     end.
