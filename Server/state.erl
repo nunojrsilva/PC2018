@@ -45,6 +45,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                             Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self()) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
+                            Game ! {auxProcess, [Timer, SpawnReds]},
                             UserProcess ! UserProcessQueue  ! {go, Game},
                             estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
                     end
@@ -61,6 +62,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                             Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self() ) end),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
+                            Game ! {auxProcess, [Timer, SpawnReds]},
                             UserProcess ! UserProcessQueue ! {go, Game},
                             estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
                     end
@@ -201,8 +203,6 @@ refreshTimer (Pid) ->
     Time = 40,
     timer:send_after( Time, Pid, {refresh, self()} ),
     receive
-        stop ->
-            {};
         after Time ->
             refreshTimer(Pid)
     end
