@@ -101,10 +101,10 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
             end,
 
             %Update Tops
-            NewTopScore = updateTopScore ({Username1, Score1}, TopScoreTimes),
-            NewTopScore_ = updateTopScore ({Username2, Score2}, NewTopScore),
-            NewTopLevel = updateTopLevel ({Username1, NewUserLevel1}, TopScoreLevels),
-            NewTopLevel_ = updateTopLevel ({Username2, NewUserLevel2}, NewTopLevel),
+            NewTopScore = updateTop ({Username1, Score1}, TopScoreTimes),
+            NewTopScore_ = updateTop ({Username2, Score2}, NewTopScore),
+            NewTopLevel = updateTop ({Username1, NewUserLevel1}, TopScoreLevels),
+            NewTopLevel_ = updateTop ({Username2, NewUserLevel2}, NewTopLevel),
             AuxMap = maps:put( Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
             NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
             estado (NewMap, Waiting, NewTopScore_, NewTopLevel_)
@@ -224,30 +224,17 @@ addReds (Pid) ->
     end
     .
 
-updateTopScore ({User, Score}, []) -> [{User, Score}];
-updateTopScore ({User, Score}, [ H = {User1, Score1} | T])->
+updateTop ({User, Score}, []) -> [{User, Score}];
+updateTop ({User, Score}, [ H = {User1, Score1} | T])->
     if
         Score > Score1 ->
             NewList = [{User, Score}, {User1, Score1}],
             Res = NewList ++ T,
             Res;
         true ->
-            [H] ++ updateTopScore({User, Score}, T)
+            [H] ++ updateTop({User, Score}, T)
     end
     .
-
-updateTopLevel ({User, Level}, []) -> [{User, Level}];
-updateTopLevel ({User, Level}, [ H = {User1, Level1} | T])->
-    if
-        Level > Level1 ->
-            NewList = [{User, Level}, {User1, Level1}],
-            Res = NewList ++ T,
-            Res;
-        true ->
-            [H] ++ updateTopLevel ({User, Level}, T)
-    end
-    .
-
 
 
 
