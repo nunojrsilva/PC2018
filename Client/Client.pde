@@ -42,7 +42,7 @@ void setup() {
   assets = new Assets();
   state = new PlayState(assets);
   // fullScreen();
-  size(800,800);
+  size(1200,800);
   frameRate(40);
   pixelDensity( displayDensity() );
 
@@ -303,7 +303,7 @@ void connect(){
   writeSocket = new Writer(socket);
   server_connection_status = writeSocket.connect();
   if(!server_connection_status.equals("server offline") ){
-    readSocket = new Reader(socket, state);
+    readSocket = new Reader(socket, state, this);
     readSocket.connect();
   }
 }

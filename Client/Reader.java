@@ -15,6 +15,7 @@ public class Reader extends Thread {
    Condition wait;
    Condition notResult;
    boolean ready;
+   Client a;
 
   private Reader(){
     this.socket = null;
@@ -28,7 +29,7 @@ public class Reader extends Thread {
     this.ready = false;
   }
 
-  public Reader(Socket socket, Client.PlayState state){
+  public Reader(Socket socket, Client.PlayState state, Client a){
     this.socket = socket;
     this.in = null;
     this.state = state;
@@ -38,6 +39,7 @@ public class Reader extends Thread {
     this.wait = l.newCondition();
     this.notResult = l.newCondition();
     this.ready = false;
+    this.a = a;
   }
 
   public String connect(){
@@ -95,29 +97,31 @@ public class Reader extends Thread {
     return f;
   }
 
-  public void updateState(float[] l){
-      // PlayerAvatar p1 = new PlayerAvatar(l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10] ,l[11], l[12], l[13]);
-      // PlayerAvatar p2 = new PlayerAvatar(l[15], l[16], l[17], l[18], l[19], l[20], l[21], l[22], l[23], l[24] ,l[25], l[26], l[27]);
+  public void updateState(float[] list){
+      Client.PlayerAvatar p1 = a.new PlayerAvatar(list[1], list[2], list[3], list[4], list[5], list[6], list[7], list[8], list[9], list[10] ,list[11], list[12], list[13]);
+      Client.PlayerAvatar p2 = a.new PlayerAvatar(list[15], list[16], list[17], list[18], list[19], list[20], list[21], list[22], list[23], list[24] ,list[25], list[26], list[27]);
       float greens, reds;
 
-      greens = l[28];
-      Creature[] green;
-      greeen[0] = new Creature(l[29], l[30], l[31], l[32], l[33],l[34], l[35], l[36], l[37] );
-      green[1] = new Creature(l[38], l[39], l[40], l[41], l[42],l[43], l[44], l[45], l[46] );
+      greens = list[28];
+      Client.Creature[] green = null;
+      // green[0] = a.new Creature(0);
+      // green[0] = a.new Creature(0);
+      green[0] = a.new Creature(list[29], list[30], list[31], list[32], list[33],list[34], list[35], list[36], list[37] );
+      green[1] = a.new Creature(list[38], list[39], list[40], list[41], list[42],list[43], list[44], list[45], list[46] );
 
-      reds = l[47];
-      ArrayList<Creature> red;
+      reds = list[47];
+      ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
       for( int i = 0; i < reds; i++){
-        red.add( new Creature(l[29], l[30], l[31], l[32], l[33],l[34], l[35], l[36], l[37] ));
+        red.add( a.new Creature(list[29], list[30], list[31], list[32], list[33],list[34], list[35], list[36], list[37] ));
       }
 
       float score1 = this.state.getScore1();
       float score2 = this.state.getScore2();
-      l.lock();
+      this.l.lock();
       try {
-        this.state = new PlayState(p1, p2, green, red, score1, score2);
+        this.state = a.new PlayState(p1, p2, green, red, score1, score2);
       }finally{
-        l.unlock();
+        this.l.unlock();
       }
   }
 
@@ -149,7 +153,7 @@ public class Reader extends Thread {
               l.lock();
               try {
                 for(String a: splitList)
-                  this.message.append(a);
+                  this.message += a;
                 notResult.signal();
               }catch (Exception e){
                 e.printStackTrace();
