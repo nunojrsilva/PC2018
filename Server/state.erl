@@ -42,8 +42,9 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
-                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp()) end ),
+                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self()) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
+                            SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue  ! {go, Game},
                             estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
                     end
@@ -57,7 +58,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
-                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp()) end),
+                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self() ) end),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue ! {go, Game},
@@ -128,7 +129,7 @@ processKeyPressData( Data ) ->
     Key.
 
 
-gameManager(State, TimeStarted)->
+gameManager(State, TimeStarted, PidState)->
     io:format("Game Manager a correr ~n"),
     % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
@@ -138,14 +139,24 @@ gameManager(State, TimeStarted)->
             KeyPressed = processKeyPressData( Data ),
             { SomeoneLost, WhoLost } = checkLosses(State),
             if
-                SomeoneLost -> gameManager(State, TimeStarted); % TODO: handle end game
+                SomeoneLost ->
+                    io:format("SomeoneLost~n"),
+                    endGame(State, TimeStarted, erlang:timestamp(), WhoLost, PidState); %gameManager(State, TimeStarted); % TODO: handle end game
                 true ->
+
                     NewState = updateWithKeyPress(State, KeyPressed, From),
-                    gameManager(NewState, TimeStarted)
+                    gameManager(NewState, TimeStarted, PidState)
             end;
         {leave, From} ->
-            {}
-            %Tratar da derrota e do endGame
+            {P1, P2, GreenCreatures, RedCreatures, ArenaSize } = State,
+            {_, {User1, Pid1}} = P1,
+            {_, {User2, Pid2}} = P2,
+            if
+                Pid1 == From ->
+                    endGame(State, TimeStarted, erlang:timestamp(), {User1, Pid1}, PidState);
+                true ->
+                    endGame(State, TimeStarted, erlang:timestamp(), {User2, Pid2}, PidState)
+            end
             ;
         {refresh, From} ->
             io:format("Entrei no ramo refresh ~n"),
@@ -153,15 +164,31 @@ gameManager(State, TimeStarted)->
             NewState = update(State),
             Res = formatState(NewState, TimeStarted),
             io:format("Novo estado : ~p~n",[Res]),
-            gameManager(NewState, TimeStarted);
+            gameManager(NewState, TimeStarted, PidState);
 
         {addReds, From} ->
             {P1, P2, GreenCreatures, RedCreatures, ArenaSize } = State,
             io:format("Vou Adicionar uma criatura vermelha~n"),
             Creature = newCreature(r),
-            gameManager({P1, P2, GreenCreatures, RedCreatures ++ [Creature], ArenaSize}, TimeStarted)
+            gameManager({P1, P2, GreenCreatures, RedCreatures ++ [Creature], ArenaSize}, TimeStarted, PidState)
 
     end.
+
+endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
+    %Construir as pontuações
+    {{P1, {U1, PID_P1}}, {P2, {U2, PID_P2}}, _, _, _} = State,
+    {LoserUsername, LoserPid} = WhoLost,
+    Score = (timer:now_diff(TimeEnded, TimeStarted)) / 1000000,
+    if
+        LoserUsername == U1 ->
+            Result = {{U1, Score}, {U2, Score + 1}};
+        true ->
+            Result = {{U1, Score + 1}, {U2, Score}}
+    end,
+    PidState ! {gameEnd, Result}.
+
+
+
 
 
 
@@ -174,6 +201,8 @@ refreshTimer (Pid) ->
     Time = 40,
     timer:send_after( Time, Pid, {refresh, self()} ),
     receive
+        stop ->
+            {};
         after Time ->
             refreshTimer(Pid)
     end
