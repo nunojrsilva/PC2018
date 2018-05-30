@@ -42,7 +42,7 @@ void setup() {
   assets = new Assets();
   state = new PlayState(assets);
   // fullScreen();
-  size(1200,800);
+  size(800,800);
   frameRate(40);
   pixelDensity( displayDensity() );
 
@@ -204,7 +204,10 @@ void draw() {
     case waiting_screen:
       cp5.getGroup("login").hide();
       background(0);
-      cp5.getController("Connecting to server").show();
+      // cp5.getController("Connecting to server").show();
+
+      server_connection_label.setValue("Waiting for your oponent").show();
+      System.out.print("Waiting for your oponent. gameState " + gameState);
 
       readSocket.l.lock();
       try {

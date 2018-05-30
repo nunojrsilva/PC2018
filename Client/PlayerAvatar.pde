@@ -19,6 +19,7 @@ class PlayerAvatar {
   /*** INFORMATION FOR UPDATE ***/
   PVector positionOffset = new PVector(0,0);
   float   energyToAdd = 0;
+  Lock l;
 
   PlayerAvatar(int type){
     this.type      = type;
@@ -34,6 +35,7 @@ class PlayerAvatar {
     this.direction = 0;
     this.velocity  = 0;
     this.energy    = this.maxEnergy;
+    this.l = new ReentrantLock();
   }
 
   PlayerAvatar(float posX, float posY, float direction, float velocity, float energy, float type, float frontAcceleration, float angularVelocity, float maxEnergy, float energyWaste, float energyGain, float drag, float size) {
@@ -49,6 +51,7 @@ class PlayerAvatar {
     this.energyWaste       = energyWaste;
     this.energyGain        = energyGain;
     this.drag              = drag;
+    this.l = new ReentrantLock();
   }
 
   void keyTyped() {

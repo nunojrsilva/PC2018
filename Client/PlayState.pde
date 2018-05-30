@@ -15,6 +15,7 @@ class PlayState {
   float adversaryPoints;
 
   int timeSlice = 0;
+  Lock l;
 
   PlayState (Assets assets) {
     this.thisPlayer = new PlayerAvatar(0);
@@ -37,6 +38,7 @@ class PlayState {
     this.keys.setBoolean("d", false);
 
     this.timeSlice = millis();
+    this.l = new ReentrantLock();
   }
 
   PlayState (PlayerAvatar a, PlayerAvatar b, Creature[] green, ArrayList<Creature> red, float score1, float score2) {

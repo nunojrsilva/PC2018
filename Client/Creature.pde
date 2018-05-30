@@ -1,4 +1,4 @@
-
+import java.util.concurrent.locks.Lock;
 
 class Creature {
   /***   CONSTANTS   ***/
@@ -10,11 +10,14 @@ class Creature {
   PVector desiredDirection;
   float   type; // 0 for green 1 for red
 
+  Lock l;
+
   Creature(int type) {
     this.position         = new PVector();
     this.direction        = new PVector();
     this.desiredDirection = new PVector();
     this.type             = type;
+    this.l = new ReentrantLock();
   }
 
   Creature( float posX, float posY, int type ) {
@@ -22,6 +25,7 @@ class Creature {
     this.direction        = new PVector(0,0);
     this.desiredDirection = new PVector(0,0);
     this.type             = type;
+    this.l = new ReentrantLock();
   }
 
   Creature( float posX, float posY, float dirX, float dirY, float dx, float dy, float size, float type, float velocity ) {
@@ -30,6 +34,7 @@ class Creature {
     this.desiredDirection = new PVector(dx,dy);
     this.type             = type;
     this.velocity         = velocity;
+    this.l = new ReentrantLock();
   }
 
   void calcDirection() {

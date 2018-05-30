@@ -16,6 +16,7 @@ public class Reader extends Thread {
    Condition notResult;
    boolean ready;
    Client a;
+   int firstState;
 
   private Reader(){
     this.socket = null;
@@ -27,6 +28,7 @@ public class Reader extends Thread {
     this.wait = null;
     this.notResult = null;
     this.ready = false;
+    this.firstState = 0;
   }
 
   public Reader(Socket socket, Client.PlayState state, Client a){
@@ -40,6 +42,7 @@ public class Reader extends Thread {
     this.notResult = l.newCondition();
     this.ready = false;
     this.a = a;
+    this.firstState = 0;
   }
 
   public String connect(){
@@ -88,82 +91,89 @@ public class Reader extends Thread {
     return this.message;
   }
 
-  private float[] convertToFloat(String[] s){
-    float[] f = {0};
+  private ArrayList<Float> convertToFloat(String[] s){
+    ArrayList<Float> f = new ArrayList(s.length);
     for(int i = 1; i < s.length; i++){
-      f[i] = Float.parseFloat( s[i] );
+      f.add( Float.parseFloat( s[i] ));
     }
 
     return f;
   }
 
-  public void updateState(float[] list){
-      Client.PlayerAvatar p1 = a.new PlayerAvatar(list[1], list[2], list[3], list[4], list[5], list[6], list[7], list[8], list[9], list[10] ,list[11], list[12], list[13]);
-      Client.PlayerAvatar p2 = a.new PlayerAvatar(list[15], list[16], list[17], list[18], list[19], list[20], list[21], list[22], list[23], list[24] ,list[25], list[26], list[27]);
-      float greens, reds;
+  public void updateState(ArrayList<Float> list){
+    int i = 0;
+    Client.PlayerAvatar p1 = a.new PlayerAvatar(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++) ,list.get(i++),list.get(i++), list.get(i++) );
+    Client.PlayerAvatar p2 = a.new PlayerAvatar(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++) ,list.get(i++), list.get(i++), list.get(i++) );
+    float greens, reds;
 
-      greens = list[28];
-      Client.Creature[] green = null;
-      // green[0] = a.new Creature(0);
-      // green[0] = a.new Creature(0);
-      green[0] = a.new Creature(list[29], list[30], list[31], list[32], list[33],list[34], list[35], list[36], list[37] );
-      green[1] = a.new Creature(list[38], list[39], list[40], list[41], list[42],list[43], list[44], list[45], list[46] );
+    greens = list.get(i++);
+    Client.Creature[] green = null;
+    // green[0] = a.new Creature(0);
+    // green[0] = a.new Creature(0);
+    green[0] = a.new Creature(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++),list.get(i++), list.get(i++), list.get(i++), list.get(i++) );
+    green[1] = a.new Creature(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++),list.get(i++), list.get(i++), list.get(i++), list.get(i++) );
 
-      reds = list[47];
-      ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
-      for( int i = 0; i < reds; i++){
-        red.add( a.new Creature(list[29], list[30], list[31], list[32], list[33],list[34], list[35], list[36], list[37] ));
-      }
+    reds = list.get(i++);
+    int count = 48;
+    ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
+    for( int i = 0; i < reds; i++){
+      red.add( a.new Creature(list.get(count++), list.get(count++), list.get(count++), list.get(count++), list.get(count++),list.get(count++), list.get(count++), list.get(count++), list.get(count++) ));
+    }
 
-      float score1 = this.state.getScore1();
-      float score2 = this.state.getScore2();
-      this.l.lock();
-      try {
-        this.state = a.new PlayState(p1, p2, green, red, score1, score2);
-      }finally{
-        this.l.unlock();
-      }
+    float score1 = this.state.getScore1();
+    float score2 = this.state.getScore2();
+    this.l.lock();
+    try {
+      this.state = a.new PlayState(p1, p2, green, red, score1, score2);
+    }finally{
+      this.l.unlock();
+    }
   }
 
   public void run(){
       while(true){
-
+          String[] splitList = null;
           try{
             this.message = in.readLine();
+            splitList = this.message.split(",");
           }catch(Exception e){
             e.printStackTrace();
             System.exit(1);
           }
-            String[] splitList = this.message.split(";");
-            float[] floatList = convertToFloat(splitList);
 
-            if( splitList[0].equals("start") ){
+          System.out.println(splitList.length + " " + this.message);
+
+          ArrayList<Float> floatList ;
+          floatList = convertToFloat(splitList);
+
+          if( splitList.length > 1 ){
+              if( this.firstState == 0){
+                this.firstState = 1;
                 this.l.lock();
                 try {
                   this.ready = true;
                 }finally{
                   this.l.unlock();
                 }
-                updateState(floatList);
                 this.wait.signal();
-            }else // end if start
-
-            if(splitList[0].equals("result")){
-              this.message = "";
-              l.lock();
-              try {
-                for(String a: splitList)
-                  this.message += a;
-                notResult.signal();
-              }catch (Exception e){
-                e.printStackTrace();
               }
-              finally{
-                l.unlock();
-              }
-            }else{ // end result
               updateState(floatList);
+          }else // end if start
+
+          if(splitList[0].equals("result")){
+            this.message = "";
+            l.lock();
+            try {
+              for(String a: splitList)
+                this.message += a;
+              notResult.signal();
+            }catch (Exception e){
+              e.printStackTrace();
             }
+            finally{
+              l.unlock();
+            }
+          }
 
 
       } // end while
