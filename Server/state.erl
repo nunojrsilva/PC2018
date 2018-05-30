@@ -26,10 +26,10 @@
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
-    estado( #{}, [], [], [])
+    estado( #{}, [], [], [], [])
     .
 
-estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
+estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
     io:format("Entrei no estado ~n"),
     receive
         {ready, Username, UserProcess} -> % Se há um user pronto a jogar, temos que ver qual é o seu nivel
@@ -38,7 +38,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                 {ok, {_, UserLevel }} -> % Descobrir nivel do User {GamesWon, UserLevel}
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
-                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels); %Adicionar User à queue porque não há ninguém para jogar com ele
+                             estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels, GamesUnderGoing); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
@@ -46,7 +46,8 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue  ! {go, Game},
-                            estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
+                            NewGame = {Game, Timer, SpawnReds},
+                            estado( Users_Score, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels, GamesUnderGoing ++ [NewGame] )
                     end
                 ;
                 error -> % Se User não existe, inserir no map com stats a zero
@@ -55,20 +56,27 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
                             io:format("Vou por o processo na queue"),
-                            estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels); %Adicionar User à queue porque não há ninguém para jogar com ele
+                            estado( NewMap, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels, GamesUnderGoing); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
-                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self() ) end),
+                            PidState = self(),
+                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), PidState ) end),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue ! {go, Game},
-                            estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels)
+                            NewGame = {Game, Timer, SpawnReds},
+                            estado( NewMap, Waiting -- [{UsernameQueue, LevelQueue, UserProcessQueue}], TopScoreTimes, TopScoreLevels, GamesUnderGoing ++ [NewGame] )
                     end
             end;
 
-        {gameEnd, Result} ->
-
+        {gameEnd, Result, FromGame} ->
+            io:format("Recebi Game ended ~n"),
+            [{GamePid, Timer, SpawnReds}] = lists:filter( fun ({G, _, _}) ->  (G == FromGame) end, GamesUnderGoing),
+            Timer ! SpawnReds ! stop,
             {{Username1, Score1}, {Username2, Score2}} = Result,
+            io:format("Result : ~p~n", [Result]),
+            List = maps:to_list(Users_Score),
+            io:format("Valores : ~p~n", [List]),
 
             % Atualização da Pontuação
 
@@ -107,7 +115,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels) ->
             NewTopLevel_ = updateTop ({Username2, NewUserLevel2}, NewTopLevel),
             AuxMap = maps:put( Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
             NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
-            estado (NewMap, Waiting, NewTopScore_, NewTopLevel_)
+            estado (NewMap, Waiting, NewTopScore_, NewTopLevel_, GamesUnderGoing -- [{GamePid, Timer, SpawnReds}])
     end
 .
 
@@ -145,6 +153,7 @@ gameManager(State, TimeStarted, PidState)->
                 true ->
                     io:format("Update with KeyPress~n"),
                     NewState = updateWithKeyPress(State, KeyPressed, From),
+                    %Res = formatState(NewState),
                     gameManager(NewState, TimeStarted, PidState)
             end;
         {leave, From} ->
@@ -162,14 +171,17 @@ gameManager(State, TimeStarted, PidState)->
         {refresh, _} ->
             io:format("Entrei no ramo refresh ~n"),
             { SomeoneLost, WhoLost } = checkLosses(State),
+            {{_, {_, Pid1}}, {_, {_, Pid2}}, _, _, _} = State,
+
             if
                 SomeoneLost ->
-                    io:format("alguem morreu no refresh do gameManager"),
+                    io:format("alguem morreu no refresh do gameManager~n"),
                     endGame(State, TimeStarted, erlang:timestamp(), WhoLost, PidState);
                 true ->
                     NewState = update(State),
                     Res = formatState(NewState, TimeStarted),
                     io:format("Novo estado : ~p~n",[Res]),
+                    Pid1 ! Pid2 ! {line, list_to_binary(Res)},
                     gameManager(NewState, TimeStarted, PidState)
             end
             ;
@@ -193,7 +205,10 @@ endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
         true ->
             Result = {{U1, Score + 1}, {U2, Score}}
     end,
-    PidState ! {gameEnd, Result}.
+    io:format("Enviar mensagem ao estado~n"),
+    PidState ! {gameEnd, Result, self() }.
+
+%Não sei se funciona mas em principio sim , o processo e o mesmo
 
 
 
@@ -207,9 +222,12 @@ refreshTimer (Pid) ->
     %Step = 1000/FramesPerSecond,
     %NumStep = integer_to_float(Step),
     Time = 40,
-    timer:send_after( Time, Pid, {refresh, self()} ),
     receive
-        after Time ->
+        stop ->
+            {}
+    after
+        Time ->
+            Pid ! {refresh, self()},
             refreshTimer(Pid)
     end
     .
@@ -217,9 +235,12 @@ refreshTimer (Pid) ->
 addReds (Pid) ->
     io:format("Red Ativo ~n"),
     Time = 10000,
-    timer:send_after( Time, Pid, {addReds, self()} ),
+
     receive
-        after Time ->
+        stop ->
+        {}
+    after Time ->
+            Pid ! {addReds, self()},
             addReds(Pid)
     end
     .
@@ -367,11 +388,11 @@ formatState(State, TimeStarted) ->
 
     %io:format("Red : ~p~n",[RedCreaturesData]),
     % CENA NOVA!!!!!
-    Result = float_to_list(Score, [{decimals, 3}]) ++ ";" ++ User1 ++ ";" ++
+    Result = float_to_list(Score, [{decimals, 3}]) ++ "," ++ User1 ++ "," ++
              User2 ++ ";" ++
-             integer_to_list(GreenCreaturesLen) ++ ";" ++
-             GreenCreaturesData ++ ";" ++
-             integer_to_list(RedCreaturesLen) ++ ";" ++
+             integer_to_list(GreenCreaturesLen) ++ "," ++
+             GreenCreaturesData ++ "," ++
+             integer_to_list(RedCreaturesLen) ++ "," ++
              RedCreaturesData,
     Result.
 
