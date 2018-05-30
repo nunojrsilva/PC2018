@@ -42,8 +42,8 @@ void setup() {
 
   assets = new Assets();
   state = new PlayState(assets);
-  // fullScreen();
-  size(800,800);
+  fullScreen();
+  // size(800,800);
   frameRate(40);
   pixelDensity( displayDensity() );
 
@@ -171,8 +171,19 @@ void setup() {
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() {
         public void controlEvent(CallbackEvent theEvent) {
+          writeSocket.send("quit");
           gameState = result_screen;
-
+          readSocket.l.lock();
+          try {
+            while( readSocket.getStatus() ){
+              readSocket.notResult.await();
+            }
+          }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("não consegui obter resultado, resultou em exception");
+          }finally{
+            readSocket.l.unlock();
+          }
         }
      })
      ;
@@ -231,6 +242,7 @@ void draw() {
     case game_screen:
       cp5.getGroup("login").hide();
       cp5.getGroup("result").hide();
+      cp5.getGroup("label").hide();
       background(0);
       cp5.getGroup("game").show();
 
@@ -241,8 +253,8 @@ void draw() {
       stroke(0);
       rect(0, 0, arenaWidth, arenaHeight);
 
-      state.prepareUpdate();
-      state.update();
+      // state.prepareUpdate();
+      // state.update();
       state.draw();
       break;
 
@@ -274,9 +286,27 @@ void draw() {
 
 }
 
-void keyTyped() {
-  if(state != null){
-    state.keyTyped();
+void keyPressed() {
+  if(gameState == game_screen){
+    // state.keyTyped();
+    // if( key == CODED ){
+      switch(key){
+        case 'w':
+          writeSocket.send("w");
+        break;
+
+        case 'a':
+          writeSocket.send("a");
+        break;
+
+        case 'd':
+          writeSocket.send("d");
+        break;
+
+        default:
+        break;
+      }
+    // }
   }
 }
 

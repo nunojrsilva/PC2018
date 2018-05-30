@@ -6,7 +6,7 @@ class PlayState {
 
   PlayerAvatar thisPlayer;
   PlayerAvatar adversary;
-  Creature[] greens;
+  ArrayList<Creature> greens;
   ArrayList<Creature> reds;
   // Creature reds;
 
@@ -22,9 +22,9 @@ class PlayState {
     this.thisPlayer = new PlayerAvatar(0);
     this.adversary  = new PlayerAvatar(1);
 
-    this.greens = new Creature[2];
-    this.greens[0] = new Creature(0);
-    this.greens[1] = new Creature(0);
+    this.greens = new ArrayList<Creature>();
+    this.greens.add(new Creature(0));
+    this.greens.add(new Creature(0));
 
     this.reds = new ArrayList<Creature>();
 
@@ -42,7 +42,7 @@ class PlayState {
     this.l = new ReentrantLock();
   }
 
-  PlayState (PlayerAvatar a, PlayerAvatar b, Creature[] green, ArrayList<Creature> red, float score1, float score2) {
+  PlayState (PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
     this.thisPlayer = a;
     this.adversary  = b;
 
@@ -114,8 +114,8 @@ class PlayState {
     this.thisPlayer.prepareUpdate( this.adversary, 0 );
     this.adversary.prepareUpdate( this.thisPlayer, 0 );
 
-    this.greens[0].prepareUpdate(this.thisPlayer, this.adversary);
-    this.greens[1].prepareUpdate(this.thisPlayer, this.adversary);
+    this.greens.get(0).prepareUpdate(this.thisPlayer, this.adversary);
+    this.greens.get(1).prepareUpdate(this.thisPlayer, this.adversary);
 
     for(Creature red: this.reds) {
       red.prepareUpdate(this.thisPlayer, this.adversary);
@@ -137,8 +137,8 @@ class PlayState {
     this.thisPlayer.update();
     this.adversary.update();
 
-    this.greens[0].update();
-    this.greens[1].update();
+    this.greens.get(0).update();
+    this.greens.get(1).update();
 
     for(Creature red: this.reds) {
       red.update();
@@ -165,8 +165,8 @@ class PlayState {
 
   void draw() {
     // Draw
-    this.greens[0].draw(this.assets);
-    this.greens[1].draw(this.assets);
+    this.greens.get(0).draw(this.assets);
+    this.greens.get(1).draw(this.assets);
 
     for(Creature red: this.reds) {
       red.draw(this.assets);

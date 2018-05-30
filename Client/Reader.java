@@ -91,33 +91,47 @@ public class Reader extends Thread {
     return this.message;
   }
 
-  private ArrayList<Float> convertToFloat(String[] s){
-    ArrayList<Float> f = new ArrayList(s.length);
+  private ArrayList<String> convertToFloat(String[] s){
+    ArrayList<String> f = new ArrayList(s.length);
     for(int i = 1; i < s.length; i++){
-      f.add( Float.parseFloat( s[i] ));
+        f.add( s[i] );
     }
 
     return f;
   }
 
-  public void updateState(ArrayList<Float> list){
-    int i = 0;
-    Client.PlayerAvatar p1 = a.new PlayerAvatar(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++) ,list.get(i++),list.get(i++), list.get(i++) );
-    Client.PlayerAvatar p2 = a.new PlayerAvatar(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++) ,list.get(i++), list.get(i++), list.get(i++) );
+  public void updateState(ArrayList<String> list){
+    int i = 1;
+    Client.PlayerAvatar p1 = a.new PlayerAvatar(
+    Float.parseFloat(list.get(i++)),
+     Float.parseFloat(list.get(i++)),
+      Float.parseFloat(list.get(i++)),
+       Float.parseFloat(list.get(i++)),
+        Float.parseFloat(list.get(i++)),
+         Float.parseFloat(list.get(i++)),
+          Float.parseFloat(list.get(i++)),
+           Float.parseFloat(list.get(i++)),
+            Float.parseFloat(list.get(i++)),
+             Float.parseFloat(list.get(i++)),
+             Float.parseFloat(list.get(i++)),
+              Float.parseFloat(list.get(i++)),
+               Float.parseFloat(list.get(i++)) );
+    i++;
+    Client.PlayerAvatar p2 = a.new PlayerAvatar( Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)) ,Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)) );
     float greens, reds;
 
-    greens = list.get(i++);
-    Client.Creature[] green = null;
-    // green[0] = a.new Creature(0);
-    // green[0] = a.new Creature(0);
-    green[0] = a.new Creature(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++),list.get(i++), list.get(i++), list.get(i++), list.get(i++) );
-    green[1] = a.new Creature(list.get(i++), list.get(i++), list.get(i++), list.get(i++), list.get(i++),list.get(i++), list.get(i++), list.get(i++), list.get(i++) );
+    greens = Float.parseFloat(list.get(i++));
+    ArrayList<Client.Creature> green = new ArrayList<Client.Creature>();
 
-    reds = list.get(i++);
+    green.add( a.new Creature( Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)),Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), list.get(i++), Float.parseFloat(list.get(i++)) ) );
+
+    green.add( a.new Creature( Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)),Float.parseFloat(list.get(i++)), Float.parseFloat(list.get(i++)), list.get(i++), Float.parseFloat(list.get(i++)) ) );
+
+    reds = Float.parseFloat( list.get(i++) );
     int count = 48;
     ArrayList<Client.Creature> red = new ArrayList<Client.Creature>();
     for( int j = 0; j < reds; j++){
-      red.add( a.new Creature(list.get(count++), list.get(count++), list.get(count++), list.get(count++), list.get(count++),list.get(count++), list.get(count++), list.get(count++), list.get(count++) ));
+      red.add( a.new Creature(Float.parseFloat(list.get(count++)), Float.parseFloat(list.get(count++)), Float.parseFloat(list.get(count++)), Float.parseFloat(list.get(count++)), Float.parseFloat(list.get(count++)),Float.parseFloat(list.get(count++)), Float.parseFloat(list.get(count++)), list.get(count++), Float.parseFloat(list.get(count++)) ));
     }
 
     float score1 = this.state.getScore1();
@@ -147,7 +161,7 @@ public class Reader extends Thread {
           }else{
             System.out.println("readSocket leu null do socket");
           }
-          ArrayList<Float> floatList ;
+          ArrayList<String> floatList ;
           floatList = convertToFloat(splitList);
 
           if( splitList.length > 1 ){
@@ -170,7 +184,8 @@ public class Reader extends Thread {
             try {
               for(String a: splitList)
                 this.message += a;
-              notResult.signal();
+                this.ready = false;
+                notResult.signal();
             }catch (Exception e){
               e.printStackTrace();
             }
