@@ -235,7 +235,7 @@ refreshTimer (Pid) ->
     %FramesPerSecond = 40,
     %Step = 1000/FramesPerSecond,
     %NumStep = integer_to_float(Step),
-    Time = 40,
+    Time = 100,
     receive
         stop ->
             {}
