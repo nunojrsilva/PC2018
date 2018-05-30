@@ -28,7 +28,10 @@ accelerateForward(Player) ->
     if
         Energy >= EnergyWaste ->
             NewVelocity = Velocity + FrontAcceleration,
-            NewEnergy   = Energy - EnergyWaste
+            NewEnergy   = Energy - EnergyWaste;
+        true ->
+            NewVelocity = Velocity,
+            NewEnergy = Energy
     end,
     {Position, Direction, NewVelocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
 
@@ -38,7 +41,10 @@ turnRight(Player) ->
     if
         Energy >= EnergyWaste ->
             NewDirection = Direction + AngularVelocity,
-            NewEnergy   = Energy - EnergyWaste
+            NewEnergy   = Energy - EnergyWaste;
+        true ->
+            NewDirection = Direction,
+            NewEnergy = Energy
     end,
     {Position, NewDirection, Velocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
 
@@ -48,7 +54,10 @@ turnLeft(Player) ->
     if
         Energy >= EnergyWaste ->
             NewDirection = Direction - AngularVelocity,
-            NewEnergy   = Energy - EnergyWaste
+            NewEnergy   = Energy - EnergyWaste;
+        true ->
+            NewDirection = Direction,
+            NewEnergy = Energy
     end,
     {Position, NewDirection, Velocity, NewEnergy, Type, FrontAcceleration, AngularVelocity, MaxEnergy, EnergyWaste, EnergyGain, Drag, Size}.
 
