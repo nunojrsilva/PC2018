@@ -73,48 +73,58 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
             io:format("Recebi Game ended ~n"),
             [{GamePid, Timer, SpawnReds}] = lists:filter( fun ({G, _, _}) ->  (G == FromGame) end, GamesUnderGoing),
             Timer ! SpawnReds ! stop,
-            {{Username1, Score1}, {Username2, Score2}} = Result,
+            {{Winner, Score}, {Loser, Score}} = Result,
             io:format("Result : ~p~n", [Result]),
-            List = maps:to_list(Users_Score),
-            io:format("Valores : ~p~n", [List]),
+            %List = maps:to_list(Users_Score),
+            %io:format("Valores : ~p~n", [List]),
 
             % Atualização da Pontuação
 
-            {ok, {GamesWon1, UserLevel1} } = maps:find(Username1, Users_Score),
-            {ok, {GamesWon2, UserLevel2} } = maps:find(Username2, Users_Score),
+            {ok, {GamesWonWinner, WinnerLevel} } = maps:find(Winner, Users_Score),
+            {ok, {_, LoserLevel} } = maps:find(Loser, Users_Score),
 
+            NewGamesWonWinner = GamesWonWinner + 1,
             if
-                Score1 > Score2 ->
-                    NewGamesWon1 = GamesWon1 + 1,
-                    NewGamesWon2 = GamesWon2,
-                    NewUserLevel2 = UserLevel2,
-                    if
-                        NewGamesWon1 > UserLevel1 ->
-                            NewUserLevel1 = UserLevel1 + 1;
-                    true ->
-                        NewUserLevel1 = UserLevel1
-                    end;
-
+                NewGamesWonWinner > WinnerLevel ->
+                    NewWinnerLevel = WinnerLevel + 1;
                 true ->
-                    %Score 2 > Score1
-                    NewGamesWon2 = GamesWon2 + 1,
-                    NewGamesWon1 = GamesWon1,
-                    NewUserLevel1 = UserLevel1,
-                    if
-                        NewGamesWon2 > UserLevel2 ->
-                            NewUserLevel2 = UserLevel2 + 1;
-                    true ->
-                        NewUserLevel2 = UserLevel2
-                    end
+                    NewWinnerLevel = WinnerLevel
             end,
 
+
+            % if
+            %     Score1 > Score2 ->
+            %         NewGamesWon1 = GamesWon1 + 1,
+            %         NewGamesWon2 = GamesWon2,
+            %         NewUserLevel2 = UserLevel2,
+            %         if
+            %             NewGamesWon1 > UserLevel1 ->
+            %                 NewUserLevel1 = UserLevel1 + 1;
+            %         true ->
+            %             NewUserLevel1 = UserLevel1
+            %         end;
+            %
+            %     true ->
+            %         %Score 2 > Score1
+            %         NewGamesWon2 = GamesWon2 + 1,
+            %         NewGamesWon1 = GamesWon1,
+            %         NewUserLevel1 = UserLevel1,
+            %         if
+            %             NewGamesWon2 > UserLevel2 ->
+            %                 NewUserLevel2 = UserLevel2 + 1;
+            %         true ->
+            %             NewUserLevel2 = UserLevel2
+            %         end
+            % end,
+
+
             %Update Tops
-            NewTopScore = updateTop ({Username1, Score1}, TopScoreTimes),
-            NewTopScore_ = updateTop ({Username2, Score2}, NewTopScore),
-            NewTopLevel = updateTop ({Username1, NewUserLevel1}, TopScoreLevels),
-            NewTopLevel_ = updateTop ({Username2, NewUserLevel2}, NewTopLevel),
-            AuxMap = maps:put( Username1, {NewGamesWon1, NewUserLevel1}, Users_Score),
-            NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
+            NewTopScore = updateTop ({Winner, Score}, TopScoreTimes),
+            NewTopScore_ = updateTop ({Loser, Score}, NewTopScore),
+            NewTopLevel = updateTop ({Winner, NewWinnerLevel}, TopScoreLevels),
+            NewTopLevel_ = updateTop ({Loser, LoserLevel}, NewTopLevel),
+            NewMap = maps:put( Winner, {NewGamesWonWinner, NewWinnerLevel}, Users_Score),
+            %NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
             estado (NewMap, Waiting, NewTopScore_, NewTopLevel_, GamesUnderGoing -- [{GamePid, Timer, SpawnReds}])
     end
 .
@@ -201,9 +211,12 @@ endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
     Score = (timer:now_diff(TimeEnded, TimeStarted)) / 1000000,
     if
         LoserUsername == U1 ->
-            Result = {{U1, Score}, {U2, Score + 1}};
+            Result = {{U2, Score}, {U1, Score}};
+            %Result = {{U1, Score}, {U2, Score + 1}};
         true ->
-            Result = {{U1, Score + 1}, {U2, Score}}
+            %Result = {{U1, Score + 1}, {U2, Score}}
+            Result = {{U1, Score}, {U2, Score}}
+
     end,
     io:format("Enviar mensagem ao estado~n"),
     PidState ! {gameEnd, Result, self() }.
