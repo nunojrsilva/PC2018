@@ -138,7 +138,7 @@ public class Reader extends Thread {
     float score2 = this.state.getScore2();
     this.l.lock();
     try {
-      this.state = a.new PlayState(p1, p2, green, red, score1, score2);
+      this.state.update(p1, p2, green, red, score1, score2);
     }finally{
       this.l.unlock();
     }

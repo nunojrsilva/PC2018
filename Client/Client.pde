@@ -287,6 +287,10 @@ void draw() {
 }
 
 void keyPressed() {
+  if(key == TAB){
+    cp5.getController("Username").setFocus(false);
+    cp5.getController("Password").setFocus(true).clear();
+  }
   if(gameState == game_screen){
     // state.keyTyped();
     // if( key == CODED ){
