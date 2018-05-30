@@ -38,6 +38,15 @@ class Creature {
     this.l = new ReentrantLock();
   }
 
+  void update( float posX, float posY, float dirX, float dirY, float dx, float dy, float size, float type, float velocity ) {
+    this.position         = new PVector(posX, posY);
+    this.direction        = new PVector(dirX,dirY);
+    this.desiredDirection = new PVector(dx,dy);
+    this.type             = type;
+    this.velocity         = velocity;
+    this.l = new ReentrantLock();
+  }
+
   void calcDirection() {
     this.direction.set( (this.direction.x + this.desiredDirection.x)/2, (this.direction.y + this.desiredDirection.y)/2);
     this.direction.normalize();

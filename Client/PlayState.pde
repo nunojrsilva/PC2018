@@ -62,6 +62,27 @@ class PlayState {
 
     this.timeSlice = millis();
   }
+  void update(PlayerAvatar a, PlayerAvatar b, Creature[] green, ArrayList<Creature> red, float score1, float score2) {
+    this.thisPlayer = a;
+    this.adversary  = b;
+
+    this.greens = green;
+
+    this.reds = red;
+
+    this.thisPlayerPoints = score1;
+    this.adversaryPoints  = score2;
+
+    this.assets = assets;
+
+    this.keys = new JSONObject();
+    this.keys.setBoolean("w", false);
+    this.keys.setBoolean("a", false);
+    this.keys.setBoolean("d", false);
+
+    this.timeSlice = millis();
+  }
+
   void keyTyped() {
     this.thisPlayer.keyTyped();
   }
