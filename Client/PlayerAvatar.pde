@@ -76,7 +76,7 @@ class PlayerAvatar {
     }
   }
 
-  void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy, float interpolateBy) {
+  void prepareUpdate( PlayerAvatar otherPlayer, float interpolateBy) {
 
     // Repel from other player
     float distance = otherPlayer.position.dist( this.position );
