@@ -375,7 +375,7 @@ checkOutsideArena(P1, P2, ArenaSize) ->
 
 
 formatResult({{U1, S1}, {U2, S2}}) ->
-    Res = U1 ++ "-" ++ float_to_list(S1, [{decimals, 3}] ) ++ U2 ++ "-" ++ float_to_list(S2, [{decimals, 3}] ),
+    Res = "result,"++ U1 ++ "," ++ float_to_list(S1, [{decimals, 3}] ) ++ "," ++ U2 ++ "," ++ float_to_list(S2, [{decimals, 3}] ) ++ "\n",
     Res.
 
 formatState(State, TimeStarted) ->
@@ -408,7 +408,7 @@ formatState(State, TimeStarted) ->
 
     %io:format("Red : ~p~n",[RedCreaturesData]),
     % CENA NOVA!!!!!
-    Result = float_to_list(Score, [{decimals, 3}]) ++ "," ++ User1 ++ "," ++
+    Result = "state," ++ float_to_list(Score, [{decimals, 3}]) ++ "," ++ User1 ++ "," ++
              User2 ++ "," ++
              integer_to_list(GreenCreaturesLen) ++ "," ++
              GreenCreaturesData ++ "," ++
