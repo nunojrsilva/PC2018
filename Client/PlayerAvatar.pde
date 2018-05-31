@@ -126,7 +126,7 @@ class PlayerAvatar {
     this.energy    = energy;
   }
 
-  void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy ) {
+  void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy, float interpolateBy) {
 
     // Repel from other player
     float distance = otherPlayer.position.dist( this.position );
@@ -134,22 +134,20 @@ class PlayerAvatar {
     PVector direction = new PVector( this.position.x, this.position.y);
     direction.sub( otherPlayer.position );
     direction.normalize();
-    this.positionOffset = direction.mult( 1/pow(distance,0.3) );
+    this.positionOffset = direction.mult( (1/pow(distance,2)) * interpolateBy);
 
     PVector directionVector = PVector.fromAngle(this.direction);
-    directionVector.mult( this.velocity );
+    directionVector.mult( this.velocity * interpolateBy);
     this.positionOffset.add( directionVector );
 
-
-
-    this.energyToAdd = extraEnergy;
+    this.energyToAdd = extraEnergy * interpolateBy;
   }
 
   /*
     Update without information
     Need information
   */
-  void update( ) {
+  void update( float interpolateBy ) {
     // Changes from the prepare update
     this.position.add( this.positionOffset );
 
@@ -160,13 +158,13 @@ class PlayerAvatar {
 
     // Drag
     if(this.velocity > 0)
-      this.velocity -= this.drag;
+      this.velocity -= this.drag * interpolateBy ;
     else this.velocity = 0;
 
 
-    this.energy += this.energyToAdd;
+    this.energy += this.energyToAdd * interpolateBy;
     if(this.energy > this.maxEnergy) this.energy = this.maxEnergy;
-    this.energy += this.energyGain;
+    this.energy += this.energyGain * interpolateBy;
     if( this.energy > this.maxEnergy ) this.energy = this.maxEnergy;
   }
 
