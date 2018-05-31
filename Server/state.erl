@@ -72,7 +72,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
                     end
             end;
 
-        {gameEnd, Result, Pid1, Pid2, FromGame} ->
+        {gameEnd, Result, ResToSend, Pid1, Pid2, FromGame} ->
             io:format("Recebi Game ended ~n"),
             [{GamePid, Timer, SpawnReds}] = lists:filter( fun ({G, _, _}) ->  (G == FromGame) end, GamesUnderGoing),
             Timer ! SpawnReds ! stop,
@@ -128,7 +128,8 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
             NewTopLevel_ = updateTop ({Loser, LoserLevel}, NewTopLevel),
             NewMap = maps:put( Winner, {NewGamesWonWinner, NewWinnerLevel}, Users_Score),
             TopToShow = formatTops(NewTopScore_, NewTopLevel_),
-            Pid1 ! Pid2 ! {tops, TopToShow},
+            DataToSend = ResToSend ++ "," ++ TopToShow,
+            Pid1 ! Pid2 ! {gameEnd, DataToSend},
             %NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
             estado (NewMap, Waiting, NewTopScore_, NewTopLevel_, GamesUnderGoing -- [{GamePid, Timer, SpawnReds}])
     end
@@ -230,8 +231,8 @@ endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
     end,
     io:format("Enviar mensagem ao estado e aos users~n"),
     Res = formatResult(Result),
-    Pid1 ! Pid2 ! {gameEnd, Res},
-    PidState ! {gameEnd, Result, Pid1, Pid2, self() }.
+    %Pid1 ! Pid2 ! {gameEnd, Res},
+    PidState ! {gameEnd, Result, Res, Pid1, Pid2, self() }.
 
 %Não sei se funciona mas em principio sim , o processo e o mesmo
 
@@ -396,7 +397,7 @@ formatTops(ScoreTop, LevelTop) ->
 
 
 formatResult({{U1, S1}, {U2, S2}}) ->
-    Res = "result,"++ U1 ++ "," ++ float_to_list(S1, [{decimals, 3}] ) ++ "," ++ U2 ++ "," ++ float_to_list(S2, [{decimals, 3}] ) ++ "\n",
+    Res = "result,"++ U1 ++ "," ++ float_to_list(S1, [{decimals, 3}] ) ++ "," ++ U2 ++ "," ++ float_to_list(S2, [{decimals, 3}] ) ++ ",",
     Res.
 
 formatState(State, TimeStarted) ->

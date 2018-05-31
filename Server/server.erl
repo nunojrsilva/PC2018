@@ -144,11 +144,8 @@ userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e 
         {tcp_error, _} ->
             GameManager ! {leave, self()};
         {gameEnd, Result} ->
+            %gen_tcp:send(Sock, Result),
             gen_tcp:send(Sock, Result),
-            receive
-                {tops, Top} ->
-                    gen_tcp:send(Sock, Top)
-                end,
                 receive
                 {tcp, _ , Data}->
                     StrData = binary:bin_to_list(Data),
