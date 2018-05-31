@@ -4,11 +4,15 @@ import java.net.*;
 import java.util.*;
 import java.lang.Thread;
 
+
 ControlP5 cp5;
 Group login;
 Group game;
 Group result;
 Group label;
+
+int server_refresh_rate = 50; // how many millis between refreshes
+int last_update_time = millis();
 
 int arenaWidth = 1200;
 int arenaHeight = 800;
@@ -174,7 +178,7 @@ void setup() {
         public void controlEvent(CallbackEvent theEvent) {
           writeSocket.send("quit");
           gameState = result_screen;
-
+          System.out.println("\n\n\n\n\n\n\n ENG GAME \n\n\n\n\n\n");
         }
      })
      ;
@@ -208,8 +212,8 @@ void draw() {
     case waiting_screen:
       cp5.getGroup("login").hide();
       cp5.getGroup("result").hide();
-      cp5.getGroup("label").show();
       background(0);
+      cp5.getGroup("label").show();
 
       server_connection_label.setText("Waiting for your oponent").show();
       System.out.print("Client - Waiting for your oponent. gameState " + gameState);
@@ -246,16 +250,20 @@ void draw() {
 
       state.l.lock();
       try{
-        state.prepareUpdate();
-        state.update();
+        int now = millis();
+        int timeElapsed = now - last_update_time;
+        float interpolateBy = timeElapsed/server_refresh_rate;
+        state.prepareUpdate(interpolateBy);
+        state.update(interpolateBy);
         state.draw();
+        last_update_time = now;
+        cp5.getGroup("game").show();
       } catch (Exception e){
         e.printStackTrace();
       } finally {
         state.l.unlock();
       }
-
-      cp5.getGroup("game").show();
+      
       break;
 
 
