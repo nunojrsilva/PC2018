@@ -181,7 +181,7 @@ public class Reader extends Thread {
       );
     }
 
-    if( a.username == list[2] )
+    if( a.username.equals(list[2]) )
       this.state.update(p1,
                         p2,
                         green,

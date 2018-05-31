@@ -257,6 +257,7 @@ void draw_game_screen(){
 void draw_result_screen(){
   cp5.getGroup("login").hide();
   cp5.getGroup("game").hide();
+  cp5.getGroup("label").hide();
   background(0);
   cp5.getGroup("result").show();
 
