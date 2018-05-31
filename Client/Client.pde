@@ -89,7 +89,6 @@ void setup() {
                 String m = readSocket.getMessage();
                 if( m.equals("login error") ){
                   server_connection_label.setValue("Login Error. Try again");
-                  System.out.println("passou pelo erro de login no Client.pde");
                 }else if ( m.equals("login successful") ){
                   readSocket.start();
                   server_connection_label.setText("Waiting for your oponent").show();
@@ -178,17 +177,17 @@ void setup() {
      .setSize( arenaWidth, arenaHeight)
      .setFont(font);
      ;
-  cp5.addButton("NEW GAME")
-    .setGroup("result")
-    .setPosition(width/2 - button_width/2 - button_width - spacing_size, arenaHeight + spacing_size )
-    .setSize( button_width, fields_height )
-    .onClick( new CallbackListener() {
-      public void controlEvent(CallbackEvent theEvent) {
-        writeSocket.send("play_again");
-        gameState = waiting_screen;
-       }
-    })
-    ;
+  // cp5.addButton("NEW GAME")
+  //   .setGroup("result")
+  //   .setPosition(width/2 - button_width/2 - button_width - spacing_size, arenaHeight + spacing_size )
+  //   .setSize( button_width, fields_height )
+  //   .onClick( new CallbackListener() {
+  //     public void controlEvent(CallbackEvent theEvent) {
+  //       writeSocket.send("play_again");
+  //       gameState = waiting_screen;
+  //      }
+  //   })
+  //   ;
   cp5.addButton("LOGOUT")
     .setGroup("result")
     .setPosition(width/2 + spacing_size, arenaHeight + spacing_size )
@@ -196,6 +195,7 @@ void setup() {
     .onClick( new CallbackListener() {
       public void controlEvent(CallbackEvent theEvent) {
         writeSocket.send("logout");
+        print("logout");
         System.exit(0);
        }
     })
