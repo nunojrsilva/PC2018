@@ -382,7 +382,7 @@ formatTops(ScoreTop, LevelTop) ->
     ScoreData = string:join(TopScoreList, "\n"),
     TopLevelList = [User ++ ": " ++ integer_to_list(Level) || {User, Level} <- LevelTop ],
     LevelData = string:join(TopLevelList, "\n"),
-    Res = "TOP:,\n" ++ ScoreData ++"\n\nLevels:\n"++ LevelData,
+    Res = "TOP:,\n" ++ ScoreData ++"\n\nLevels:\n"++ LevelData ++ "\n",
     Res.
 
 
