@@ -75,11 +75,12 @@ void setup() {
           server_connection_label.setValue(server_connection_status);
           try{
             System.out.println(socket);
-            if( server_connection_status.equals("Server offline") ){
-              connect();
-              System.out.println(server_connection_status);
-            }else if( !server_connection_status.equals("Server offline") ){
 
+            if( !connect() ){
+              server_connection_label.setText("Server offline");
+              System.out.println(server_connection_status);
+            }else if( socket.isConnected() ){
+              System.out.println("socket is allegedly connected");
               if( username.equals("") || password.equals("") ){
                 server_connection_label.setValue("Account credentials must not be blank");
               }else{
@@ -125,13 +126,13 @@ void setup() {
           username = cp5.get(Textfield.class,"Username").getText();
           password = cp5.get(Textfield.class,"Password").getText();
 
-          server_connection_label.setValue(server_connection_status);
           try{
 
-            if( server_connection_status.equals("Server offline") ){
-              connect();
+            if( !connect() ){
+              server_connection_label.setText("Server offline");
               System.out.println(server_connection_status);
-            }else if( !server_connection_status.equals("Server offline") ){
+            }else if( socket.isConnected() ){
+              System.out.println("socket is allegedly connected");
 
               if( username.equals("") || password.equals("") ){
                 server_connection_label.setValue("Account credentials must not be blank");
@@ -339,22 +340,26 @@ void draw_result_screen(){
   // show_result_screen.
 }
 
-void connect(){
-  try{
-    socket = new Socket("localhost", 12345);
-  }catch(Exception e){
-    e.printStackTrace();
-    server_connection_status = "Server offline";
-    System.out.println("ggggggg");
-    // server_connection_label.setValue("Server offline");
-  }
-  System.out.println("aaaaaaa");
-  System.out.println(server_connection_status);
+boolean connect(){
+  if( socket == null || !socket.isConnected() ){
+    try{
+      socket = new Socket("localhost", 12345);
+    }catch(Exception e){
+      e.printStackTrace();
+      server_connection_status = "Server offline";
+      System.out.println("ggggggg");
+      // server_connection_label.setValue("Server offline");
+    }
+    System.out.println("aaaaaaa");
+    System.out.println(server_connection_status);
 
-  if(!server_connection_status.equals("server offline") ){
-    writeSocket = new Writer(socket);
-    server_connection_status = writeSocket.connect();
-    readSocket = new Reader(socket, state, this);
-    readSocket.connect();
+    if( socket != null && socket.isConnected() ){
+      writeSocket = new Writer(socket);
+      server_connection_status = writeSocket.connect();
+      readSocket = new Reader(socket, state, this);
+      readSocket.connect();
+    }
+    else return false;
   }
+  return true;
 }

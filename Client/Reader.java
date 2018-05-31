@@ -186,7 +186,10 @@ public class Reader extends Thread {
     // float score2 = this.state.getScore2();
     this.l.lock();
     try {
-      this.state.update(p1, p2, green, red, this.state.getScore1(), this.state.getScore2());
+      if( a.username.equals(list[1]) )
+        this.state.update(p1, p2, green, red, this.state.getScore1(), this.state.getScore2());
+      else
+        this.state.update(p2, p1, green, red, this.state.getScore1(), this.state.getScore2());
     }finally{
       this.l.unlock();
     }
