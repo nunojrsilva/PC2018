@@ -158,7 +158,7 @@ void setup() {
         }
       })
      ;
-  server_connection_label = cp5.addTextlabel("Connecting to server")
+  server_connection_label = cp5.addTextlabel("serverlabel")
                                .setGroup("label")
                                .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
                                // .setColor(100)
@@ -173,6 +173,7 @@ void setup() {
      .onClick( new CallbackListener() {
         public void controlEvent(CallbackEvent theEvent) {
           writeSocket.send("quit");
+          print("QUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\n");
           gameState = result_screen;
 
         }
@@ -180,8 +181,9 @@ void setup() {
      ;
   cp5.addTextlabel("Result Screen")
      .setGroup("result")
-     .setPosition(0,0)
+     .setPosition( width/2 - (arenaWidth/2), height/2 - (arenaHeight/2) )
      .setSize( arenaWidth, arenaHeight)
+     .setFont(font);
      ;
   cp5.addButton("NEW GAME")
     .setGroup("result")
@@ -208,8 +210,8 @@ void draw() {
     case waiting_screen:
       cp5.getGroup("login").hide();
       cp5.getGroup("result").hide();
-      cp5.getGroup("label").show();
       background(0);
+      cp5.get(Textlabel.class,"serverlabel").show();
 
       server_connection_label.setText("Waiting for your oponent").show();
       System.out.print("Client - Waiting for your oponent. gameState " + gameState);
@@ -265,20 +267,20 @@ void draw() {
       background(0);
       cp5.getGroup("result").show();
 
-      // readSocket.l.lock();
-      // try {
-      //   print("ENTERED RESULT SCREEN");
-      //   while( readSocket.getStatus() ){
-      //     readSocket.notResult.await();
-      //   }
+      readSocket.l.lock();
+      try {
+        print("ENTERED RESULT SCREEN");
+        while( readSocket.getStatus() ){
+          readSocket.notResult.await();
+        }
         cp5.get(Textlabel.class,"Result Screen")
            .setText(readSocket.checkMessage());
-      // }catch (Exception e){
-      //   e.printStackTrace();
-      //   System.out.println("não consegui obter resultado, resultou em exception");
-      // }finally{
-      //   readSocket.l.unlock();
-      // }
+      }catch (Exception e){
+        e.printStackTrace();
+        System.out.println("não consegui obter resultado, resultou em exception");
+      }finally{
+        readSocket.l.unlock();
+      }
       break;
 
     default:
