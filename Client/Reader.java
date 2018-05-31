@@ -181,22 +181,22 @@ public class Reader extends Thread {
       );
     }
 
-      if( a.username.equals(list[1]) )
-        this.state.update(p1,
-                          p2,
-                          green,
-                          red,
-                          this.state.getScore1(),
-                          this.state.getScore2()
-                          );
-      else
-        this.state.update(p2,
-                          p1,
-                          green,
-                          red,
-                          this.state.getScore1(),
-                          this.state.getScore2()
-                          );
+    if( a.username == list[2] )
+      this.state.update(p1,
+                        p2,
+                        green,
+                        red,
+                        this.state.getScore1(),
+                        this.state.getScore2()
+                        );
+    else
+      this.state.update(p2,
+                        p1,
+                        green,
+                        red,
+                        this.state.getScore1(),
+                        this.state.getScore2()
+                        );
   }
 
   public void run(){
@@ -214,7 +214,7 @@ public class Reader extends Thread {
             System.out.println(this.message);
             splitList = this.message.split(",");
 
-            System.out.println("readSocket - " + splitList.length + " " + this.message);
+            // System.out.println("readSocket - " + splitList.length + " " + this.message);
 
 
             if( splitList[0].equals("state") ){
@@ -233,7 +233,7 @@ public class Reader extends Thread {
 
             if(splitList[0].equals("result")){
               a.gameState = a.result_screen;
-
+              this.message = "";
               for(String a: splitList)
                 this.message += "\n" + a;
 
@@ -249,16 +249,7 @@ public class Reader extends Thread {
               }
             }
           }else{
-            System.out.println("readSocket leu null do socket");
-            a.gameState = a.result_screen;
-            this.l.lock();
-            try {
-              this.ready = false;
-              // this.l.wait.await();
-            }
-            finally{
-              this.l.unlock();
-            }
+            break;
           }
 
 

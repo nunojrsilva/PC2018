@@ -47,7 +47,9 @@ class PlayState {
     this.l.lock();
     try {
       this.thisPlayer = a;
+      this.thisPlayer.type = 1;
       this.adversary  = b;
+      this.adversary.type = 2;
 
       this.greens = green;
       this.reds = red;

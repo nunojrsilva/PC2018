@@ -138,19 +138,6 @@ class PlayerAvatar {
     }
   }
 
-  /** Receives info from server **/
-  void update( int posX, int posY, float direction, float velocity, float energy ) {
-    this.l.lock();
-    try {
-      this.position.set(posX, posY);
-      this.direction = direction;
-      this.velocity  = velocity;
-      this.energy    = energy;
-    }finally{
-      this.l.unlock();
-    }
-  }
-
   void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy, float interpolateBy) {
 
     // Repel from other player
@@ -182,7 +169,7 @@ class PlayerAvatar {
     else this.velocity = 0;
 
 
-    this.energy += this.energyToAdd * interpolateBy;
+    this.energy += this.energyToAdd ;
     if(this.energy > this.maxEnergy) this.energy = this.maxEnergy;
     this.energy += this.energyGain * interpolateBy;
     if( this.energy > this.maxEnergy ) this.energy = this.maxEnergy;
@@ -194,7 +181,7 @@ class PlayerAvatar {
      strokeWeight(1);
      stroke(0,0,0);
      rect(10, 10, this.maxEnergy * 10, 30);
-
+     print(this.energy + "\n");
      // draw energy box
      noStroke();
      fill( 255, 0, 0 );

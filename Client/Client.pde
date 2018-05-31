@@ -168,9 +168,7 @@ void setup() {
      .onClick( new CallbackListener() {
         public void controlEvent(CallbackEvent theEvent) {
           writeSocket.send("quit");
-          print("QUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\n");
           gameState = result_screen;
-          System.out.println("\n\n\n\n\n\n\n ENG GAME \n\n\n\n\n\n");
         }
      })
      ;
@@ -186,7 +184,7 @@ void setup() {
     .setSize( button_width, fields_height )
     .onClick( new CallbackListener() {
       public void controlEvent(CallbackEvent theEvent) {
-        writeSocket.login(username, password);
+        writeSocket.send("play_again");
         gameState = waiting_screen;
        }
     })
