@@ -379,10 +379,10 @@ checkOutsideArena(P1, P2, ArenaSize) ->
 formatTops(ScoreTop, LevelTop) ->
     %TOP:,\n
     TopScoreList = [User ++ ": " ++ float_to_list(Score, [{decimals, 3}] )|| {User, Score} <- ScoreTop],
-    ScoreData = string:join(TopScoreList, "\n"),
+    ScoreData = string:join(TopScoreList, ","),
     TopLevelList = [User ++ ": " ++ integer_to_list(Level) || {User, Level} <- LevelTop ],
-    LevelData = string:join(TopLevelList, "\n"),
-    Res = "TOP:,\n" ++ ScoreData ++"\n\nLevels:\n"++ LevelData ++ "\n",
+    LevelData = string:join(TopLevelList, ","),
+    Res = "TOP:," ++ ScoreData ++",,Levels:,"++ LevelData ++ ",",
     Res.
 
 
