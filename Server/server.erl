@@ -129,8 +129,16 @@ userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e 
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, Username, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
-            GameManager ! {keyPressed, Data, self()}, % Precisamos de saber quem foi que premiu a tecla!
-            userOnGame(Sock, Username, GameManager);
+            NewData = re:replace(Data, "(^\\s+)|(\\s+$)", "", [global,{return,list}]),
+            case NewData of
+                "quit" ->
+                    io:format("Recebi quit"),
+                    GameManager ! {leave, self()},
+                    userOnGame(Sock, Username, GameManager);
+                _ ->
+                    GameManager ! {keyPressed, Data, self()}, % Precisamos de saber quem foi que premiu a tecla!
+                    userOnGame(Sock, Username, GameManager)
+            end;
         {tcp_closed, _} ->
             GameManager ! {leave, self()};
         {tcp_error, _} ->
@@ -138,6 +146,10 @@ userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e 
         {gameEnd, Result} ->
             gen_tcp:send(Sock, Result),
             receive
+                {tops, Top} ->
+                    gen_tcp:send(Sock, Top)
+                end,
+                receive
                 {tcp, _ , Data}->
                     StrData = binary:bin_to_list(Data),
                     Str = re:replace(StrData, "(^\\s+)|(\\s+$)", "", [global,{return,list}]),

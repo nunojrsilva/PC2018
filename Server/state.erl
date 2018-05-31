@@ -69,7 +69,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
                     end
             end;
 
-        {gameEnd, Result, FromGame} ->
+        {gameEnd, Result, Pid1, Pid2, FromGame} ->
             io:format("Recebi Game ended ~n"),
             [{GamePid, Timer, SpawnReds}] = lists:filter( fun ({G, _, _}) ->  (G == FromGame) end, GamesUnderGoing),
             Timer ! SpawnReds ! stop,
@@ -124,6 +124,8 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
             NewTopLevel = updateTop ({Winner, NewWinnerLevel}, TopScoreLevels),
             NewTopLevel_ = updateTop ({Loser, LoserLevel}, NewTopLevel),
             NewMap = maps:put( Winner, {NewGamesWonWinner, NewWinnerLevel}, Users_Score),
+            TopToShow = formatTops(NewTopScore_, NewTopLevel_),
+            Pid1 ! Pid2 ! {tops, TopToShow},
             %NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
             estado (NewMap, Waiting, NewTopScore_, NewTopLevel_, GamesUnderGoing -- [{GamePid, Timer, SpawnReds}])
     end
@@ -221,7 +223,7 @@ endGame(State, TimeStarted, TimeEnded, WhoLost, PidState) ->
     io:format("Enviar mensagem ao estado e aos users~n"),
     Res = formatResult(Result),
     Pid1 ! Pid2 ! {gameEnd, Res},
-    PidState ! {gameEnd, Result, self() }.
+    PidState ! {gameEnd, Result, Pid1, Pid2, self() }.
 
 %Não sei se funciona mas em principio sim , o processo e o mesmo
 
@@ -236,7 +238,7 @@ refreshTimer (Pid) ->
     %FramesPerSecond = 40,
     %Step = 1000/FramesPerSecond,
     %NumStep = integer_to_float(Step),
-    Time = 10,
+    Time = 100,
     receive
         stop ->
             {}
@@ -372,6 +374,17 @@ checkOutsideArena(P1, P2, ArenaSize) ->
         (P2_X < 0) or (P2_X > ArenaX) or (P2_Y < 0) or (P2_Y > ArenaY) -> {true, ID_P2};
         true -> {false, none}
     end.
+
+
+formatTops(ScoreTop, LevelTop) ->
+    %TOP:,\n
+    TopScoreList = [User ++ ": " ++ float_to_list(Score, [{decimals, 3}] )|| {User, Score} <- ScoreTop],
+    ScoreData = lists:join(TopScoreList, "\n"),
+    TopLevelList = [User ++ ": " ++ float_to_list(Level, [{decimals, 3}]) ++ "\n" || {User, Level} <- LevelTop ],
+    LevelData = lists:join(TopLevelList, "\n"),
+    Res = "TOP:,\n" ++ ScoreData ++ LevelData,
+    Res.
+
 
 
 formatResult({{U1, S1}, {U2, S2}}) ->
