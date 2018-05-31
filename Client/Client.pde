@@ -118,37 +118,37 @@ void setup() {
      .setPosition( width/2 + spacing_size, height/2 + spacing_size )
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
-        public void controlEvent(CallbackEvent theEvent) {
-          username = cp5.get(Textfield.class,"Username").getText();
-          password = cp5.get(Textfield.class,"Password").getText();
+       public void controlEvent(CallbackEvent theEvent) {
+         username = cp5.get(Textfield.class,"Username").getText();
+         password = cp5.get(Textfield.class,"Password").getText();
 
-          try{
-            if( !connect() ){
-              server_connection_label.setText("Server offline");
-            }else if( socket.isConnected() ){
+         try{
+           if( !connect() ){
+             server_connection_label.setText("Server offline");
+           }else if( socket.isConnected() ){
 
-              if( username.equals("") || password.equals("") ){
-                server_connection_label.setValue("Account credentials must not be blank");
-              }else{
+             if( username.equals("") || password.equals("") ){
+               server_connection_label.setValue("Account credentials must not be blank");
+             }else{
 
-                writeSocket.createAccount(username,password);
-                String m = readSocket.getMessage();
-                if( m.equals("create_account error") ){
-                  server_connection_label.setValue("Account creation Error. Try again");
-                }else if( m.equals("create_account successful") ){
-                  readSocket.start();
-                  server_connection_label.setText("Waiting for your oponent").show();
-                  gameState = waiting_screen;
-                }
+               writeSocket.createAccount(username,password);
+               String m = readSocket.getMessage();
+               if( m.equals("create_account error") ){
+                 server_connection_label.setValue("Account creation Error. Try again");
+               }else if( m.equals("create_account successful") ){
+                 readSocket.start();
+                 server_connection_label.setText("Waiting for your oponent").show();
+                 gameState = waiting_screen;
+               }
 
-              }
+             }
 
 
-            }// if not offline
-          }catch(Exception e){
-            e.printStackTrace();
-          }
-        }
+           }// if not offline
+         }catch(Exception e){
+           e.printStackTrace();
+         }
+       }
       })
      ;
   server_connection_label = cp5.addTextlabel("serverlabel")
@@ -192,81 +192,19 @@ void setup() {
 void draw() {
   switch(gameState){
     case login_screen:
-      cp5.show();
-      background(0);
       draw_login_screen();
       break;
 
-
     case waiting_screen:
-      cp5.getGroup("login").hide();
-      cp5.getGroup("result").hide();
-      background(0);
-      cp5.get(Textlabel.class,"serverlabel").show();
-
-
-      readSocket.l.lock();
-      try {
-          while( !readSocket.getStatus() ){
-              String m = readSocket.checkMessage();
-              server_connection_label.setValue(m).show();
-              readSocket.wait.await();
-          } // end while
-      }catch (Exception e){
-        e.printStackTrace();
-      }finally{
-        readSocket.l.unlock();
-      }
-      gameState = game_screen;
-
+      draw_waiting_screen();
       break;
-
 
     case game_screen:
-      cp5.getGroup("login").hide();
-      cp5.getGroup("result").hide();
-      cp5.getGroup("label").hide();
-      background(0);
-
-      translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
-      image(assets.background,0,0);
-      noFill();
-      stroke(0);
-      rect(0, 0, arenaWidth, arenaHeight);
-
-      state.l.lock();
-      try{
-        state.prepareUpdate();
-        state.update();
-        state.draw();
-      } catch (Exception e){
-        e.printStackTrace();
-      } finally {
-        state.l.unlock();
-      }
-
-      cp5.getGroup("game").show();
+      draw_game_screen();
       break;
 
-
     case result_screen:
-      cp5.getGroup("login").hide();
-      cp5.getGroup("game").hide();
-      background(0);
-      cp5.getGroup("result").show();
-
-      readSocket.l.lock();
-      try {
-        while( readSocket.getStatus() ){
-          readSocket.notResult.await();
-        }
-        cp5.get(Textlabel.class,"Result Screen")
-           .setText(readSocket.checkMessage());
-      }catch (Exception e){
-        e.printStackTrace();
-      }finally{
-        readSocket.l.unlock();
-      }
+      draw_result_screen();
       break;
 
     default:
@@ -275,43 +213,9 @@ void draw() {
 
 }
 
-void keyPressed() {
-  if(key == TAB){
-    cp5.get(Textfield.class,"Username")
-       .setFocus( !cp5.get(Textfield.class,"Username").isFocus() );
-    cp5.get(Textfield.class,"Password")
-       .setFocus( !cp5.get(Textfield.class,"Password").isFocus() );
-  }
-  if(gameState == game_screen){
-    if( key == CODED ){
-      if( keyCode == UP)
-        writeSocket.send("w");
-      else if( keyCode == LEFT)
-        writeSocket.send("a");
-      else if( keyCode == RIGHT)
-        writeSocket.send("d");
-    }
-      switch(key){
-        case 'w':
-          writeSocket.send("w");
-        break;
-
-        case 'a':
-          writeSocket.send("a");
-        break;
-
-        case 'd':
-          writeSocket.send("d");
-        break;
-
-        default:
-        break;
-      }
-    // }
-  }
-}
-
 void draw_login_screen(){
+  cp5.show();
+  background(0);
   cp5.getGroup("game").hide();
   cp5.getGroup("result").hide();
   background(0);
@@ -319,12 +223,71 @@ void draw_login_screen(){
 }
 
 void draw_game_screen(){
+  cp5.getGroup("login").hide();
+  cp5.getGroup("result").hide();
+  cp5.getGroup("label").hide();
+  background(0);
 
+  translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
+  image(assets.background,0,0);
+  noFill();
+  stroke(0);
+  rect(0, 0, arenaWidth, arenaHeight);
+
+  state.l.lock();
+  try{
+    state.prepareUpdate();
+    state.update();
+    state.draw();
+  } catch (Exception e){
+    e.printStackTrace();
+  } finally {
+    state.l.unlock();
+  }
+
+  cp5.getGroup("game").show();
 }
 
 void draw_result_screen(){
+  cp5.getGroup("login").hide();
+  cp5.getGroup("game").hide();
+  background(0);
+  cp5.getGroup("result").show();
 
-  // show_result_screen.
+  readSocket.l.lock();
+  try {
+    while( readSocket.getStatus() ){
+      readSocket.notResult.await();
+    }
+    cp5.get(Textlabel.class,"Result Screen")
+       .setText(readSocket.checkMessage());
+  }catch (Exception e){
+    e.printStackTrace();
+  }finally{
+    readSocket.l.unlock();
+  }
+}
+
+void draw_waiting_screen(){
+  cp5.getGroup("login").hide();
+  cp5.getGroup("result").hide();
+  background(0);
+  cp5.get(Textlabel.class,"serverlabel").show();
+
+
+  readSocket.l.lock();
+  try {
+      while( !readSocket.getStatus() ){
+          String m = readSocket.checkMessage();
+          server_connection_label.setValue(m).show();
+          readSocket.wait.await();
+      } // end while
+  }catch (Exception e){
+    e.printStackTrace();
+  }finally{
+    readSocket.l.unlock();
+  }
+  gameState = game_screen;
 }
 
 boolean connect(){
@@ -344,4 +307,40 @@ boolean connect(){
     }
     else return false;
   return true;
+}
+
+void keyPressed() {
+  if(key == TAB){
+    cp5.get(Textfield.class,"Username")
+       .setFocus( !cp5.get(Textfield.class,"Username").isFocus() );
+    cp5.get(Textfield.class,"Password")
+       .setFocus( !cp5.get(Textfield.class,"Password").isFocus() );
+  }
+  if(gameState == game_screen){
+    if( key == CODED ){
+      if( keyCode == UP)
+        writeSocket.send("w");
+      else if( keyCode == LEFT)
+        writeSocket.send("a");
+      else if( keyCode == RIGHT)
+        writeSocket.send("d");
+    }
+    switch(key){
+      case 'w':
+        writeSocket.send("w");
+      break;
+
+      case 'a':
+        writeSocket.send("a");
+      break;
+
+      case 'd':
+        writeSocket.send("d");
+      break;
+
+      default:
+      break;
+    }
+    // }
+  }
 }
