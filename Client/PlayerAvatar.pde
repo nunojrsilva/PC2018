@@ -76,68 +76,6 @@ class PlayerAvatar {
     }
   }
 
-
-  void keyTyped() {
-    if( key == 'w' ) {
-      this.accelerateForward();
-    } else if( key == 'd') {
-      this.turnRight();
-    } else if( key == 'a') {
-      this.turnLeft();
-    }
-  }
-
-  void processKeys(JSONObject keys) {
-    // key is a Processing variable
-    if( this.energy > this.energyWaste ) {
-      if( keys.getBoolean("w") ) {
-        this.accelerateForward();
-      }
-      if( keys.getBoolean("d") ) {
-         this.turnRight();
-      }
-      if( keys.getBoolean("a") ) {
-         this.turnLeft();
-      }
-    }
-  }
-
-  void accelerateForward() {
-    this.l.lock();
-    try {
-      if( this.energy > this.energyWaste ){
-        this.velocity  += this.frontAcceleration;
-        this.energy    -= this.energyWaste;
-      }
-    }finally{
-      this.l.unlock();
-    }
-  }
-
-  void turnRight() {
-    this.l.lock();
-    try {
-      if( this.energy > this.energyWaste ){
-        this.direction += this.angularVelocity;
-        this.energy    -= this.energyWaste;
-      }
-    }finally{
-      this.l.unlock();
-    }
-  }
-
-  void turnLeft() {
-    this.l.lock();
-    try {
-      if( this.energy > this.energyWaste ){
-        this.direction  -= this.angularVelocity;
-        this.energy     -= this.energyWaste;
-      }
-    }finally{
-      this.l.unlock();
-    }
-  }
-
   void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy, float interpolateBy) {
 
     // Repel from other player
