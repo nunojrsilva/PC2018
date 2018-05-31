@@ -10,12 +10,9 @@ class PlayState {
   ArrayList<Creature> reds;
   // Creature reds;
 
-  JSONObject keys;
-
   float thisPlayerPoints;
   float adversaryPoints;
 
-  int timeSlice = 0;
   Lock l;
 
   PlayState (Assets assets) {
@@ -33,12 +30,6 @@ class PlayState {
 
     this.assets = assets;
 
-    this.keys = new JSONObject();
-    this.keys.setBoolean("w", false);
-    this.keys.setBoolean("a", false);
-    this.keys.setBoolean("d", false);
-
-    this.timeSlice = millis();
     this.l = new ReentrantLock();
   }
 
@@ -54,13 +45,6 @@ class PlayState {
     this.adversaryPoints  = score2;
 
     this.assets = assets;
-
-    this.keys = new JSONObject();
-    this.keys.setBoolean("w", false);
-    this.keys.setBoolean("a", false);
-    this.keys.setBoolean("d", false);
-
-    this.timeSlice = millis();
   }
 
   void update(PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
@@ -75,30 +59,6 @@ class PlayState {
     this.adversaryPoints  = score2;
 
     this.assets = assets;
-
-    this.keys = new JSONObject();
-    this.keys.setBoolean("w", false);
-    this.keys.setBoolean("a", false);
-    this.keys.setBoolean("d", false);
-
-    this.timeSlice = millis();
-  }
-
-  void keyTyped() {
-    this.thisPlayer.keyTyped();
-  }
-
-  void keyReleased() {
-    String k = ""+key;
-     if( !this.keys.isNull(k) ) {
-       this.keys.setBoolean(k, false );
-     }
-  }
-  void keyPressed() {
-     String k = ""+key;
-     if( !this.keys.isNull(k) ) {
-       this.keys.setBoolean(k, true );
-     }
   }
 
   // void updatePlayer1(PlayerAvatar p){
@@ -122,16 +82,6 @@ class PlayState {
       red.prepareUpdate(this.thisPlayer, this.adversary);
     }
   }
-  void updateRedsList() {
-    int currentMillis = millis();
-    print(currentMillis + "\n");
-    //print(millis() - this.timeSlice + "\n");
-    if( currentMillis - this.timeSlice > 10000) {
-      print("Created new creature.\n");
-      this.reds.add( new Creature(random(100, arenaWidth-100), random(100, arenaHeight - 100), 1) );
-      this.timeSlice = currentMillis;
-    }
-  }
 
   void update() {
 
@@ -144,17 +94,8 @@ class PlayState {
     for(Creature red: this.reds) {
       red.update();
     }
-
-    this.updateRedsList();
   }
 
-  // PlayerAvatar getPlayer1(){
-  //   return this.thisPlayer;
-  // }
-  //
-  // PlayerAvatar getPlayer2(){
-  //   return this.adversary;
-  // }
 
   float getScore1(){
     return this.thisPlayerPoints;
