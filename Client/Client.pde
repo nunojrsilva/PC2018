@@ -180,12 +180,23 @@ void setup() {
      ;
   cp5.addButton("NEW GAME")
     .setGroup("result")
-    .setPosition(width/2 - button_width/2, arenaHeight + spacing_size )
+    .setPosition(width/2 - button_width/2 - button_width - spacing_size, arenaHeight + spacing_size )
     .setSize( button_width, fields_height )
     .onClick( new CallbackListener() {
       public void controlEvent(CallbackEvent theEvent) {
         writeSocket.send("play_again");
         gameState = waiting_screen;
+       }
+    })
+    ;
+  cp5.addButton("LOGOUT")
+    .setGroup("result")
+    .setPosition(width/2 + spacing_size, arenaHeight + spacing_size )
+    .setSize( button_width, fields_height )
+    .onClick( new CallbackListener() {
+      public void controlEvent(CallbackEvent theEvent) {
+        writeSocket.send("logout");
+        System.exit(0);
        }
     })
     ;
