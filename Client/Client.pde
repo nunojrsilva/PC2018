@@ -255,13 +255,14 @@ void draw() {
         state.prepareUpdate(interpolateBy);
         state.update(interpolateBy);
         state.draw();
+        last_update_time = now;
         cp5.getGroup("game").show();
       } catch (Exception e){
         e.printStackTrace();
       } finally {
         state.l.unlock();
       }
-      last_update_time = now;
+      
       break;
 
 
