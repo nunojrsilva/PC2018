@@ -130,7 +130,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
             NewTopLevel_ = updateTop ({Loser, LoserLevel}, NewTopLevel),
             NewMap = maps:put( Winner, {NewGamesWonWinner, NewWinnerLevel}, Users_Score),
             TopToShow = formatTops(NewTopScore_, NewTopLevel_),
-            DataToSend = ResToSend ++ "," ++ TopToShow,
+            DataToSend = ResToSend ++ "," ++ TopToShow ++"\n",
             Pid1 ! Pid2 ! {gameEnd, DataToSend},
             %NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
             estado (NewMap, Waiting, NewTopScore_, NewTopLevel_, GamesUnderGoing -- [{GamePid, Timer, SpawnReds}])
