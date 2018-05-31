@@ -123,9 +123,6 @@ user(Sock, Username) ->
 userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e o processo GameManager
     receive
         {line, Data} -> % Recebemos alguma coisa do processo GameManager
-            %io:format("Sending ~p to the client",[Data]),
-            %io:format("Data = ~p~n",[Data]),
-            %Bin = list_to_binary(Data),
             gen_tcp:send(Sock, Data),
             userOnGame(Sock, Username, GameManager);
         {tcp, _, Data} -> % Recebemos alguma coisa do socket (Cliente), enviamos para o GameManager
@@ -144,26 +141,29 @@ userOnGame(Sock, Username, GameManager) -> % Faz a mediação entre o Cliente e 
         {tcp_error, _} ->
             GameManager ! {leave, self()};
         {gameEnd, Result} ->
-            %gen_tcp:send(Sock, Result),
             gen_tcp:send(Sock, Result),
-                receive
-                {tcp, _ , Data}->
-                    StrData = binary:bin_to_list(Data),
-                    Str = re:replace(StrData, "(^\\s+)|(\\s+$)", "", [global,{return,list}]),
-                    io:format("User said ~p~n",[Str]),
-                    case Str of
-                        "play_again" ->
-                            user(Sock, Username);
-                        "logout" ->
-                            case logout(Username) of
-                                ok ->
-                                    gen_tcp:send(Sock, <<"logout successful\n">>);
-                                _ ->
-                                    gen_tcp:send(Sock,<<"logout error\n">>)
-                            end;
-                        _ ->
-                            io:format("Erro, deve escolher play_again ou logout~n"),
-                            user(Sock, Username)
-                    end
-            end
+            logoutUser(Username, Sock)
     end.
+
+
+logoutUser (Username, Sock) ->
+    receive
+        {tcp, _ , Data}->
+            StrData = binary:bin_to_list(Data),
+            Str = re:replace(StrData, "(^\\s+)|(\\s+$)", "", [global,{return,list}]),
+            io:format("User said ~p~n",[Str]),
+            case Str of
+                "logout" ->
+                    case logout(Username) of
+                        ok ->
+                            gen_tcp:send(Sock, <<"logout successful\n">>),
+                            gen_tcp:close(Sock);
+                        _ ->
+                            gen_tcp:send(Sock,<<"logout error\n">>),
+                            logoutUser(Username, Sock)
+                    end;
+                _ ->
+                    logoutUser(Username, Sock)
+            end
+        end
+    .

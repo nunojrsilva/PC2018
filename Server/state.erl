@@ -39,12 +39,14 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
             io:format("Recebi ready de ~p ~n", [Username]),
             case maps:find(Username, Users_Score) of
                 {ok, {_, UserLevel }} -> % Descobrir nivel do User {GamesWon, UserLevel}
+                    io:format("User já existe~n"),
                     case lists:filter( fun ({_, L, _}) -> (L == UserLevel) or (L == UserLevel+1) or (L == UserLevel-1) end, Waiting) of
                         [] ->
                              estado(Users_Score, Waiting ++ [{Username, UserLevel, UserProcess}], TopScoreTimes, TopScoreLevels, GamesUnderGoing); %Adicionar User à queue porque não há ninguém para jogar com ele
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
+                            io:format(" Novo game~n"),
                             Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self(), millis()) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
@@ -293,14 +295,16 @@ updateWithKeyPress(State, KeyPressed, From, InterpolateBy) ->
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P1);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P1);
-                KeyPressed == "d" -> NewPlayer = turnRight(P1)
+                KeyPressed == "d" -> NewPlayer = turnRight(P1);
+                true -> NewPlayer = P1
             end,
             update({{NewPlayer, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }, InterpolateBy);
         From == PID_P2 ->
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P2);
-                KeyPressed == "d" -> NewPlayer = turnRight(P2)
+                KeyPressed == "d" -> NewPlayer = turnRight(P2);
+                true -> NewPlayer = P2
             end,
             update({{P1, {U1,PID_P1}}, {NewPlayer, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }, InterpolateBy);
         true ->
