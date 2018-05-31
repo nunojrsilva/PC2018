@@ -58,7 +58,7 @@ class Creature {
   }
 
 
-  void calcDirection() {
+  void calcDirection(float interpolateBy) {
     this.l.lock();
     try {
       this.direction.set( (this.direction.x + this.desiredDirection.x)/2, (this.direction.y + this.desiredDirection.y)/2);
