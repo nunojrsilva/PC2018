@@ -101,7 +101,7 @@ public class Reader extends Thread {
   }
 
   public void updateState(String[] list){
-    int i = 2;
+    int i = 3;
     Client.PlayerAvatar p1 = a.new PlayerAvatar(
       Float.parseFloat(list[i++]),
       Float.parseFloat(list[i++]),
@@ -210,7 +210,7 @@ public class Reader extends Thread {
             System.out.println("readSocket - " + splitList.length + " " + this.message);
 
 
-            if( splitList.length > 1 ){
+            if( splitList[0].equals("state") ){
                 if( this.firstState == 0){
                   this.firstState = 1;
                   this.l.lock();
@@ -227,15 +227,15 @@ public class Reader extends Thread {
             if(splitList[0].equals("result")){
               a.gameState = a.result_screen;
 
-              l.lock();
+              this.l.lock();
               try {
                 this.ready = false;
-                notResult.signal();
+                this.notResult.signal();
               }catch (Exception e){
                 e.printStackTrace();
               }
               finally{
-                l.unlock();
+                this.l.unlock();
               }
             }
           }else{

@@ -166,7 +166,7 @@ void setup() {
                                // setFont(createFont("Calibri",20))
                                ;
   cp5.addButton("END GAME")
-     .setGroup(game)
+     .setGroup("game")
      .setPosition(width/2 - button_width/2, arenaHeight + spacing_size )
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() {
@@ -178,18 +178,18 @@ void setup() {
      })
      ;
   cp5.addTextlabel("Result Screen")
-     .setGroup(result)
+     .setGroup("result")
      .setPosition(0,0)
      .setSize( arenaWidth, arenaHeight)
      ;
   cp5.addButton("NEW GAME")
-    .setGroup(result)
+    .setGroup("result")
     .setPosition(width/2 - button_width/2, arenaHeight + spacing_size )
     .setSize( button_width, fields_height )
     .onClick( new CallbackListener() {
       public void controlEvent(CallbackEvent theEvent) {
         writeSocket.login(username, password);
-        gameState = waiting_screen;
+        // gameState = waiting_screen;
        }
     })
     ;
@@ -235,7 +235,6 @@ void draw() {
       cp5.getGroup("result").hide();
       cp5.getGroup("label").hide();
       background(0);
-      cp5.getGroup("game").show();
 
       // background(255);
       translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
@@ -254,6 +253,8 @@ void draw() {
       } finally {
         state.l.unlock();
       }
+
+      cp5.getGroup("game").show();
       break;
 
 
@@ -263,21 +264,20 @@ void draw() {
       background(0);
       cp5.getGroup("result").show();
 
-      readSocket.l.lock();
-      try {
-        while( readSocket.getStatus() ){
-          readSocket.notResult.await();
-        }
-        cp5.get(Textfield.class,"Result Screen")
-           .setText(readSocket.getMessage());
-      }catch (Exception e){
-        e.printStackTrace();
-        System.out.println("não consegui obter resultado, resultou em exception");
-      }finally{
-        readSocket.l.unlock();
-      }
-
-
+      // readSocket.l.lock();
+      // try {
+      //   print("ENTERED RESULT SCREEN");
+      //   while( readSocket.getStatus() ){
+      //     readSocket.notResult.await();
+      //   }
+        cp5.get(Textlabel.class,"Result Screen")
+           .setText(readSocket.checkMessage());
+      // }catch (Exception e){
+      //   e.printStackTrace();
+      //   System.out.println("não consegui obter resultado, resultou em exception");
+      // }finally{
+      //   readSocket.l.unlock();
+      // }
       break;
 
     default:

@@ -15,7 +15,7 @@ class PlayerAvatar {
   float   direction;    // Ângulo para onde se encontra virado
   float   velocity;     // Escalar
   float   energy;       // Energia atual
-  float     type;         // 0 - Jogador. 1 - Oponente
+  float     type;         // 1 - Jogador. 2 - Oponente
 
   /*** INFORMATION FOR UPDATE ***/
   PVector positionOffset = new PVector(0,0);
@@ -192,11 +192,14 @@ class PlayerAvatar {
     rotate(this.direction);
     // Desenha o Avatar
     noStroke();
-    fill(255);
+    if( type == 1 )
+      fill(255,0,0);
+    else
+      fill(0,0,0);
     triangle(assets.playerSize/2 +20, 0,
              10, -20,
              10, 20);
-    if(this.type == 0) image( assets.player0, -assets.playerSize/2, -assets.playerSize/2);
+    if(this.type == 1) image( assets.player0, -assets.playerSize/2, -assets.playerSize/2);
     else image(assets.player1,  -assets.playerSize/2, -assets.playerSize/2);
     popMatrix();
   }
