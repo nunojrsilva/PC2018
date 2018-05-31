@@ -66,8 +66,6 @@ class PlayState {
   }
 
   void prepareUpdate() {
-    // this.thisPlayer.processKeys( this.keys );
-
     this.thisPlayer.prepareUpdate( this.adversary, 0 );
     this.adversary.prepareUpdate( this.thisPlayer, 0 );
 
@@ -113,7 +111,6 @@ class PlayState {
     this.thisPlayer.draw(this.assets);
     this.adversary.draw(this.assets);
 
-    // for(red in this.reds) red.draw();
     this.thisPlayer.drawEnergy();
   }
 }

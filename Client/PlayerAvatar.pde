@@ -168,18 +168,9 @@ class PlayerAvatar {
     this.energyToAdd = extraEnergy;
   }
 
-  /*
-    Update without information
-    Need information
-  */
   void update( ) {
     // Changes from the prepare update
     this.position.add( this.positionOffset );
-
-    // update position
-    //PVector directionVector = new PVector( cos(this.direction), sin(this.direction) );
-    //directionVector.mult( this.velocity );
-    //this.position.add( directionVector );
 
     // Drag
     if(this.velocity > 0)

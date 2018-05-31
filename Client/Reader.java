@@ -56,7 +56,6 @@ public class Reader extends Thread {
   }
 
   public void disconnect() throws IOException{
-    ///////// tem de se fechar o out primieiro? senao vamos fechar o socket e deve dar Exception no Writer
     socket.close();
   }
 
@@ -182,8 +181,6 @@ public class Reader extends Thread {
       );
     }
 
-    // this.state.l.lock();
-    // try {
       if( a.username.equals(list[1]) )
         this.state.update(p1,
                           p2,
@@ -200,9 +197,6 @@ public class Reader extends Thread {
                           this.state.getScore1(),
                           this.state.getScore2()
                           );
-    // }finally{
-    //   this.state.l.unlock();
-    // }
   }
 
   public void run(){
@@ -252,7 +246,6 @@ public class Reader extends Thread {
               }
             }
           }else{
-///////////avisar que se perdeu a ligação com o servidor - ver o porque do null e senão fechar o socket para poder tratar o termino do jogo no Cliente também inves de crashar ou fingir continuar a jogar
             System.out.println("readSocket leu null do socket");
             a.gameState = a.result_screen;
             this.l.lock();

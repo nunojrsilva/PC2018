@@ -5,23 +5,15 @@ import java.util.*;
 public class Writer {
    Socket socket;
    PrintWriter out;
-   // BufferedReader in;
-   // int* gameState;
-   // String message;
 
   private Writer(){
     this.socket = null;
     this.out = null;
-    // this.state = false;
-    // this.message = "";
   }
 
   public Writer(Socket socket/*, PlayState state*/){
     this.socket = socket;
     this.out = null;
-      // System.out.println("Write Socket msg: passou no construtor");
-    // this.gameState = gameState;
-    // this.message = "";
   }
 
   public String connect(){
@@ -29,8 +21,6 @@ public class Writer {
       out = new PrintWriter(socket.getOutputStream());
     }catch(Exception e){
       e.printStackTrace();
-      // System.out.println("Write Socket msg: Server offline");
-      // System.out.println("writeSocket out: " + out);
     }
     return "Write Socket msg: Server offline";
   }
@@ -45,8 +35,6 @@ public class Writer {
       out.flush();
     }catch (Exception e) {
       e.printStackTrace();
-      // socket = null;
-      // System.exit(1);
     }
   }
 
@@ -57,8 +45,6 @@ public class Writer {
       out.flush();
     }catch (Exception e){
       e.printStackTrace();
-      // socket = null;
-      // System.exit(1);
     }
   }
 
@@ -68,8 +54,6 @@ public class Writer {
       out.flush();
     }catch (Exception e) {
       e.printStackTrace();
-      // socket = null;
-      // System.exit(1);
     }
   }
 }
