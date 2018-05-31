@@ -2,8 +2,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class PlayState {
-  Assets assets;
-
   PlayerAvatar thisPlayer;
   PlayerAvatar adversary;
   ArrayList<Creature> greens;
@@ -15,7 +13,7 @@ class PlayState {
 
   Lock l;
 
-  PlayState (Assets assets) {
+  PlayState () {
     this.thisPlayer = new PlayerAvatar(0);
     this.adversary  = new PlayerAvatar(1);
 
@@ -27,8 +25,6 @@ class PlayState {
 
     this.thisPlayerPoints = 0;
     this.adversaryPoints  = 0;
-
-    this.assets = assets;
 
     this.l = new ReentrantLock();
   }
@@ -44,7 +40,6 @@ class PlayState {
       this.thisPlayerPoints = score1;
       this.adversaryPoints  = score2;
 
-    this.assets = assets;
     last_update_time = millis();
   }
 
@@ -60,8 +55,6 @@ class PlayState {
       this.thisPlayerPoints = score1;
       this.adversaryPoints  = score2;
 
-
-      this.assets = assets;
     }finally{
       this.l.unlock();
     }
@@ -106,15 +99,15 @@ class PlayState {
 
   void draw() {
     // Draw
-    this.greens.get(0).draw(this.assets);
-    this.greens.get(1).draw(this.assets);
+    this.greens.get(0).draw();
+    this.greens.get(1).draw();
 
     for(Creature red: this.reds) {
-      red.draw(this.assets);
+      red.draw();
     }
 
-    this.thisPlayer.draw(this.assets);
-    this.adversary.draw(this.assets);
+    this.thisPlayer.draw();
+    this.adversary.draw();
 
     this.thisPlayer.drawEnergy();
   }

@@ -45,7 +45,7 @@ Assets assets;
 void setup() {
 
   assets = new Assets();
-  state = new PlayState(assets);
+  state = new PlayState();
   fullScreen();
   // size(800,800);
   frameRate(60);
