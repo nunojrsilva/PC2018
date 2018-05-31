@@ -45,7 +45,7 @@ Assets assets;
 void setup() {
 
   assets = new Assets();
-  state = new PlayState(assets);
+  state = new PlayState();
   fullScreen();
   // size(800,800);
   frameRate(60);
@@ -78,13 +78,9 @@ void setup() {
           password = cp5.get(Textfield.class,"Password").getText();
           server_connection_label.setValue(server_connection_status);
           try{
-            System.out.println(socket);
-
             if( !connect() ){
               server_connection_label.setText("Server offline");
-              System.out.println(server_connection_status);
             }else if( socket.isConnected() ){
-              System.out.println("socket is allegedly connected");
               if( username.equals("") || password.equals("") ){
                 server_connection_label.setValue("Account credentials must not be blank");
               }else{
@@ -96,6 +92,7 @@ void setup() {
                   System.out.println("passou pelo erro de login no Client.pde");
                 }else if ( m.equals("login successful") ){
                   readSocket.start();
+                  server_connection_label.setText("Waiting for your oponent").show();
                   gameState = waiting_screen;
 
                 }
@@ -125,50 +122,44 @@ void setup() {
      .setPosition( width/2 + spacing_size, height/2 + spacing_size )
      .setSize( button_width, fields_height )
      .onClick( new CallbackListener() { //Eventhandler do botao da pagina inicial main_screen
-        public void controlEvent(CallbackEvent theEvent) {
-          // connect();
-          username = cp5.get(Textfield.class,"Username").getText();
-          password = cp5.get(Textfield.class,"Password").getText();
+       public void controlEvent(CallbackEvent theEvent) {
+         username = cp5.get(Textfield.class,"Username").getText();
+         password = cp5.get(Textfield.class,"Password").getText();
 
-          try{
+         try{
+           if( !connect() ){
+             server_connection_label.setText("Server offline");
+           }else if( socket.isConnected() ){
 
-            if( !connect() ){
-              server_connection_label.setText("Server offline");
-              System.out.println(server_connection_status);
-            }else if( socket.isConnected() ){
-              System.out.println("socket is allegedly connected");
+             if( username.equals("") || password.equals("") ){
+               server_connection_label.setValue("Account credentials must not be blank");
+             }else{
 
-              if( username.equals("") || password.equals("") ){
-                server_connection_label.setValue("Account credentials must not be blank");
-              }else{
+               writeSocket.createAccount(username,password);
+               String m = readSocket.getMessage();
+               if( m.equals("create_account error") ){
+                 server_connection_label.setValue("Account creation Error. Try again");
+               }else if( m.equals("create_account successful") ){
+                 readSocket.start();
+                 server_connection_label.setText("Waiting for your oponent").show();
+                 gameState = waiting_screen;
+               }
 
-                writeSocket.createAccount(username,password);
-                String m = readSocket.getMessage();
-                if( m.equals("create_account error") ){
-                  server_connection_label.setValue("Account creation Error. Try again");
-                  System.out.println("passou pelo erro de create account no Client.pde");
-                }else if( m.equals("create_account successful") ){
-                  readSocket.start();
-                  gameState = waiting_screen;
-                }
-
-              }
+             }
 
 
-            }// if not offline
-          }catch(Exception e){
-            e.printStackTrace();
-          }
-        }
+           }// if not offline
+         }catch(Exception e){
+           e.printStackTrace();
+         }
+       }
       })
      ;
-  server_connection_label = cp5.addTextlabel("Connecting to server")
+  server_connection_label = cp5.addTextlabel("serverlabel")
                                .setGroup("label")
                                .setPosition(width/2 - server_connection_label_size/2, height/2 + 2*spacing_size + fields_height)
-                               // .setColor(100)
                                .setFont(font)
                                .setText("Connecting to server")
-                               // setFont(createFont("Calibri",20))
                                ;
   cp5.addButton("END GAME")
      .setGroup("game")
@@ -177,6 +168,7 @@ void setup() {
      .onClick( new CallbackListener() {
         public void controlEvent(CallbackEvent theEvent) {
           writeSocket.send("quit");
+          print("QUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\nQUIT GAME SENTTTTTTTTTTTTTT\n");
           gameState = result_screen;
           System.out.println("\n\n\n\n\n\n\n ENG GAME \n\n\n\n\n\n");
         }
@@ -184,8 +176,9 @@ void setup() {
      ;
   cp5.addTextlabel("Result Screen")
      .setGroup("result")
-     .setPosition(0,0)
+     .setPosition( width/2 - (arenaWidth/2), height/2 - (arenaHeight/2) )
      .setSize( arenaWidth, arenaHeight)
+     .setFont(font);
      ;
   cp5.addButton("NEW GAME")
     .setGroup("result")
@@ -194,7 +187,7 @@ void setup() {
     .onClick( new CallbackListener() {
       public void controlEvent(CallbackEvent theEvent) {
         writeSocket.login(username, password);
-        // gameState = waiting_screen;
+        gameState = waiting_screen;
        }
     })
     ;
@@ -203,96 +196,125 @@ void setup() {
 void draw() {
   switch(gameState){
     case login_screen:
-      cp5.show();
-      background(0);
       draw_login_screen();
       break;
 
-
     case waiting_screen:
-      cp5.getGroup("login").hide();
-      cp5.getGroup("result").hide();
-      background(0);
-      cp5.getGroup("label").show();
-
-      server_connection_label.setText("Waiting for your oponent").show();
-      System.out.print("Client - Waiting for your oponent. gameState " + gameState);
-
-      readSocket.l.lock();
-      try {
-          while( !readSocket.getStatus() ){
-              String m = readSocket.checkMessage();
-              server_connection_label.setValue(m).show();
-              readSocket.wait.await();
-          } // end while
-      }catch (Exception e){
-        e.printStackTrace();
-      }finally{
-        readSocket.l.unlock();
-      }
-      gameState = game_screen;
-
+      draw_waiting_screen();
       break;
-
 
     case game_screen:
-      cp5.getGroup("login").hide();
-      cp5.getGroup("result").hide();
-      cp5.getGroup("label").hide();
-      background(0);
-
-      // background(255);
-      translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
-      image(assets.background,0,0);
-      noFill();
-      stroke(0);
-      rect(0, 0, arenaWidth, arenaHeight);
-
-      state.l.lock();
-      try{
-        int now = millis();
-        int timeElapsed = now - last_update_time;
-        float interpolateBy = timeElapsed/server_refresh_rate;
-        state.prepareUpdate(interpolateBy);
-        state.update(interpolateBy);
-        state.draw();
-        last_update_time = now;
-        cp5.getGroup("game").show();
-      } catch (Exception e){
-        e.printStackTrace();
-      } finally {
-        state.l.unlock();
-      }
-      
+      draw_game_screen();
       break;
 
-
     case result_screen:
-      cp5.getGroup("login").hide();
-      cp5.getGroup("game").hide();
-      background(0);
-      cp5.getGroup("result").show();
-
-      // readSocket.l.lock();
-      // try {
-      //   print("ENTERED RESULT SCREEN");
-      //   while( readSocket.getStatus() ){
-      //     readSocket.notResult.await();
-      //   }
-        cp5.get(Textlabel.class,"Result Screen")
-           .setText(readSocket.checkMessage());
-      // }catch (Exception e){
-      //   e.printStackTrace();
-      //   System.out.println("não consegui obter resultado, resultou em exception");
-      // }finally{
-      //   readSocket.l.unlock();
-      // }
+      draw_result_screen();
       break;
 
     default:
       break;
   }
 
+}
+
+void draw_login_screen(){
+  cp5.show();
+  background(0);
+  cp5.getGroup("game").hide();
+  cp5.getGroup("result").hide();
+  background(0);
+  cp5.getGroup("login").show();
+}
+
+void draw_game_screen(){
+  cp5.getGroup("login").hide();
+  cp5.getGroup("result").hide();
+  cp5.getGroup("label").hide();
+  background(0);
+
+  translate(width/2 - (arenaWidth/2), height/2 - (arenaHeight/2));
+  image(assets.background,0,0);
+  noFill();
+  stroke(0);
+  rect(0, 0, arenaWidth, arenaHeight);
+
+  state.l.lock();
+  try{
+    int now = millis();
+    int timeElapsed = now - last_update_time;
+    float interpolateBy = timeElapsed/server_refresh_rate;
+    state.prepareUpdate(interpolateBy);
+    state.update(interpolateBy);
+    state.draw();
+    last_update_time = now;
+  } catch (Exception e){
+    e.printStackTrace();
+  } finally {
+    state.l.unlock();
+  }
+
+  cp5.getGroup("game").show();
+}
+
+void draw_result_screen(){
+  cp5.getGroup("login").hide();
+  cp5.getGroup("game").hide();
+  background(0);
+  cp5.getGroup("result").show();
+
+  readSocket.l.lock();
+  try {
+    while( readSocket.getStatus() ){
+      readSocket.notResult.await();
+    }
+    cp5.get(Textlabel.class,"Result Screen")
+       .setText(readSocket.checkMessage());
+  }catch (Exception e){
+    e.printStackTrace();
+  }finally{
+    readSocket.l.unlock();
+  }
+}
+
+void draw_waiting_screen(){
+  cp5.getGroup("login").hide();
+  cp5.getGroup("result").hide();
+  background(0);
+  cp5.get(Textlabel.class,"serverlabel").show();
+
+
+  readSocket.l.lock();
+  try {
+      while( !readSocket.getStatus() ){
+          String m = readSocket.checkMessage();
+          server_connection_label.setValue(m).show();
+          readSocket.wait.await();
+      } // end while
+  }catch (Exception e){
+    e.printStackTrace();
+  }finally{
+    readSocket.l.unlock();
+  }
+  gameState = game_screen;
+}
+
+boolean connect(){
+    socket = null;
+    try{
+      socket = new Socket("localhost", 12345);
+    }catch(Exception e){
+      e.printStackTrace();
+      server_connection_status = "Server offline";
+    }
+
+    if( socket != null && socket.isConnected() ){
+      writeSocket = new Writer(socket);
+      server_connection_status = writeSocket.connect();
+      readSocket = new Reader(socket, state, this);
+      readSocket.connect();
+    }
+    else return false;
+  return true;
 }
 
 void keyPressed() {
@@ -303,7 +325,6 @@ void keyPressed() {
        .setFocus( !cp5.get(Textfield.class,"Password").isFocus() );
   }
   if(gameState == game_screen){
-    // state.keyTyped();
     if( key == CODED ){
       if( keyCode == UP)
         writeSocket.send("w");
@@ -312,62 +333,22 @@ void keyPressed() {
       else if( keyCode == RIGHT)
         writeSocket.send("d");
     }
-      switch(key){
-        case 'w':
-          writeSocket.send("w");
-        break;
+    switch(key){
+      case 'w':
+        writeSocket.send("w");
+      break;
 
-        case 'a':
-          writeSocket.send("a");
-        break;
+      case 'a':
+        writeSocket.send("a");
+      break;
 
-        case 'd':
-          writeSocket.send("d");
-        break;
+      case 'd':
+        writeSocket.send("d");
+      break;
 
-        default:
-        break;
-      }
+      default:
+      break;
+    }
     // }
   }
-}
-
-void draw_login_screen(){
-  cp5.getGroup("game").hide();
-  cp5.getGroup("result").hide();
-  background(0);
-  cp5.getGroup("login").show();
-}
-
-void draw_game_screen(){
-
-}
-
-void draw_result_screen(){
-
-  // show_result_screen.
-}
-
-boolean connect(){
-  if( socket == null || !socket.isConnected() ){
-    try{
-      socket = new Socket("localhost", 12345);
-    }catch(Exception e){
-      e.printStackTrace();
-      server_connection_status = "Server offline";
-      System.out.println("ggggggg");
-      // server_connection_label.setValue("Server offline");
-    }
-    System.out.println("aaaaaaa");
-    System.out.println(server_connection_status);
-
-    if( socket != null && socket.isConnected() ){
-      writeSocket = new Writer(socket);
-      server_connection_status = writeSocket.connect();
-      readSocket = new Reader(socket, state, this);
-      readSocket.connect();
-    }
-    else return false;
-  }
-  return true;
 }

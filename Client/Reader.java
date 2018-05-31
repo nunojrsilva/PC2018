@@ -56,7 +56,6 @@ public class Reader extends Thread {
   }
 
   public void disconnect() throws IOException{
-    ///////// tem de se fechar o out primieiro? senao vamos fechar o socket e deve dar Exception no Writer
     socket.close();
   }
 
@@ -182,17 +181,22 @@ public class Reader extends Thread {
       );
     }
 
-    // float score1 = this.state.getScore1();
-    // float score2 = this.state.getScore2();
-    this.l.lock();
-    try {
       if( a.username.equals(list[1]) )
-        this.state.update(p1, p2, green, red, this.state.getScore1(), this.state.getScore2());
+        this.state.update(p1,
+                          p2,
+                          green,
+                          red,
+                          this.state.getScore1(),
+                          this.state.getScore2()
+                          );
       else
-        this.state.update(p2, p1, green, red, this.state.getScore1(), this.state.getScore2());
-    }finally{
-      this.l.unlock();
-    }
+        this.state.update(p2,
+                          p1,
+                          green,
+                          red,
+                          this.state.getScore1(),
+                          this.state.getScore2()
+                          );
   }
 
   public void run(){
@@ -230,6 +234,9 @@ public class Reader extends Thread {
             if(splitList[0].equals("result")){
               a.gameState = a.result_screen;
 
+              for(String a: splitList)
+                this.message += "\n" + a;
+
               this.l.lock();
               try {
                 this.ready = false;
@@ -242,7 +249,6 @@ public class Reader extends Thread {
               }
             }
           }else{
-///////////avisar que se perdeu a ligação com o servidor - ver o porque do null e senão fechar o socket para poder tratar o termino do jogo no Cliente também inves de crashar ou fingir continuar a jogar
             System.out.println("readSocket leu null do socket");
             a.gameState = a.result_screen;
             this.l.lock();

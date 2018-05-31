@@ -2,8 +2,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 class PlayState {
-  Assets assets;
-
   PlayerAvatar thisPlayer;
   PlayerAvatar adversary;
   ArrayList<Creature> greens;
@@ -15,7 +13,7 @@ class PlayState {
 
   Lock l;
 
-  PlayState (Assets assets) {
+  PlayState () {
     this.thisPlayer = new PlayerAvatar(0);
     this.adversary  = new PlayerAvatar(1);
 
@@ -28,56 +26,46 @@ class PlayState {
     this.thisPlayerPoints = 0;
     this.adversaryPoints  = 0;
 
-    this.assets = assets;
-
     this.l = new ReentrantLock();
   }
 
   PlayState (PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
-    this.thisPlayer = a;
-    this.adversary  = b;
+      this.thisPlayer = a;
+      this.adversary  = b;
 
-    this.greens = green;
+      this.greens = green;
 
-    this.reds = red;
+      this.reds = red;
 
-    this.thisPlayerPoints = score1;
-    this.adversaryPoints  = score2;
+      this.thisPlayerPoints = score1;
+      this.adversaryPoints  = score2;
 
-    this.assets = assets;
     last_update_time = millis();
   }
 
   void update(PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
-    this.thisPlayer = a;
-    this.adversary  = b;
+    this.l.lock();
+    try {
+      this.thisPlayer = a;
+      this.adversary  = b;
 
-    this.greens = green;
+      this.greens = green;
+      this.reds = red;
 
-    this.reds = red;
+      this.thisPlayerPoints = score1;
+      this.adversaryPoints  = score2;
 
-    this.thisPlayerPoints = score1;
-    this.adversaryPoints  = score2;
-
-    this.assets = assets;
-
+    }finally{
+      this.l.unlock();
+    }
     last_update_time = millis();
   }
-
-  // void updatePlayer1(PlayerAvatar p){
-  //   this.thisPlayer.update(p);
-  // }
-  //
-  // void updatePlayer2(PlayerAvatar p){
-  //   this.thisPlayer.update(p);
-  // }
 
   void prepareUpdate(float interpolateBy) {
     // this.thisPlayer.processKeys( this.keys );
 
     this.thisPlayer.prepareUpdate( this.adversary, 0, interpolateBy);
     this.adversary.prepareUpdate( this.thisPlayer, 0, interpolateBy);
-
     this.greens.get(0).prepareUpdate(this.thisPlayer, this.adversary, interpolateBy);
     this.greens.get(1).prepareUpdate(this.thisPlayer, this.adversary, interpolateBy);
 
@@ -111,17 +99,16 @@ class PlayState {
 
   void draw() {
     // Draw
-    this.greens.get(0).draw(this.assets);
-    this.greens.get(1).draw(this.assets);
+    this.greens.get(0).draw();
+    this.greens.get(1).draw();
 
     for(Creature red: this.reds) {
-      red.draw(this.assets);
+      red.draw();
     }
 
-    this.thisPlayer.draw(this.assets);
-    this.adversary.draw(this.assets);
+    this.thisPlayer.draw();
+    this.adversary.draw();
 
-    // for(red in this.reds) red.draw();
     this.thisPlayer.drawEnergy();
   }
 }
