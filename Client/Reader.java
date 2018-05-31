@@ -225,23 +225,21 @@ public class Reader extends Thread {
             }else // end if start
 
             if(splitList[0].equals("result")){
-              this.message = "";
+              a.gameState = a.result_screen;
+
               l.lock();
               try {
-                for(String a: splitList)
-                  this.message += a;
-                  this.ready = false;
-                  notResult.signal();
+                this.ready = false;
+                notResult.signal();
               }catch (Exception e){
                 e.printStackTrace();
               }
               finally{
                 l.unlock();
               }
-              a.gameState = a.result_screen;
             }
           }else{
-///////////acisar que se perdeu a ligação com o servidor - ver o porque do null e senão fechar o socket para poder tratar o termino do jogo no Cliente também inves de crashar ou fingir continuar a jogar
+///////////avisar que se perdeu a ligação com o servidor - ver o porque do null e senão fechar o socket para poder tratar o termino do jogo no Cliente também inves de crashar ou fingir continuar a jogar
             System.out.println("readSocket leu null do socket");
             a.gameState = a.result_screen;
             this.l.lock();
@@ -253,10 +251,6 @@ public class Reader extends Thread {
               this.l.unlock();
             }
           }
-          // ArrayList<String> floatList ;
-          // floatList = convertToFloat(splitList);
-
-
 
 
       } // end while

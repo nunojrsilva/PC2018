@@ -173,17 +173,7 @@ void setup() {
         public void controlEvent(CallbackEvent theEvent) {
           writeSocket.send("quit");
           gameState = result_screen;
-          readSocket.l.lock();
-          try {
-            while( readSocket.getStatus() ){
-              readSocket.notResult.await();
-            }
-          }catch (Exception e){
-            e.printStackTrace();
-            System.out.println("não consegui obter resultado, resultou em exception");
-          }finally{
-            readSocket.l.unlock();
-          }
+
         }
      })
      ;
@@ -200,7 +190,6 @@ void setup() {
       public void controlEvent(CallbackEvent theEvent) {
         writeSocket.login(username, password);
         gameState = waiting_screen;
-
        }
     })
     ;
@@ -221,7 +210,7 @@ void draw() {
       cp5.getGroup("label").show();
       background(0);
 
-      server_connection_label.setValue("Waiting for your oponent").show();
+      server_connection_label.setText("Waiting for your oponent").show();
       System.out.print("Client - Waiting for your oponent. gameState " + gameState);
 
       readSocket.l.lock();
@@ -276,16 +265,19 @@ void draw() {
 
       readSocket.l.lock();
       try {
-        String result = readSocket.getMessage();
-        while(result.startsWith("r"))
+        while( readSocket.getStatus() ){
           readSocket.notResult.await();
-
+        }
+        cp5.get(Textfield.class,"Result Screen")
+           .setText(readSocket.getMessage());
       }catch (Exception e){
         e.printStackTrace();
-      }
-      finally{
+        System.out.println("não consegui obter resultado, resultou em exception");
+      }finally{
         readSocket.l.unlock();
       }
+
+
       break;
 
     default:
@@ -295,13 +287,22 @@ void draw() {
 }
 
 void keyPressed() {
-  // if(key == TAB){
-  //   cp5.getController("Username").setFocus(false);
-  //   cp5.getController("Password").setFocus(true).clear();
-  // }
+  if(key == TAB){
+    cp5.get(Textfield.class,"Username")
+       .setFocus( !cp5.get(Textfield.class,"Username").isFocus() );
+    cp5.get(Textfield.class,"Password")
+       .setFocus( !cp5.get(Textfield.class,"Password").isFocus() );
+  }
   if(gameState == game_screen){
     // state.keyTyped();
-    // if( key == CODED ){
+    if( key == CODED ){
+      if( keyCode == UP)
+        writeSocket.send("w");
+      else if( keyCode == LEFT)
+        writeSocket.send("a");
+      else if( keyCode == RIGHT)
+        writeSocket.send("d");
+    }
       switch(key){
         case 'w':
           writeSocket.send("w");
