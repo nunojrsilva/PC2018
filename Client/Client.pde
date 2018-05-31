@@ -252,7 +252,6 @@ void draw_game_screen(){
     int now = millis();
     int timeElapsed = now - last_update_time;
     float interpolateBy = timeElapsed/server_refresh_rate;
-    state.prepareUpdate(interpolateBy);
     state.update(interpolateBy);
     state.draw();
     last_update_time = now;

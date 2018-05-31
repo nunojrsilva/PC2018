@@ -90,7 +90,6 @@ class PlayerAvatar {
     directionVector.mult( this.velocity * interpolateBy);
     this.positionOffset.add( directionVector );
 
-    this.energyToAdd = extraEnergy * interpolateBy;
   }
 
   /*
