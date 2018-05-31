@@ -134,7 +134,7 @@ class PlayerAvatar {
     PVector direction = new PVector( this.position.x, this.position.y);
     direction.sub( otherPlayer.position );
     direction.normalize();
-    this.positionOffset = direction.mult( (1/pow(distance,2)) * interpolateBy);
+    this.positionOffset = direction.mult( (1/pow(distance,1.3)) * interpolateBy);
 
     PVector directionVector = PVector.fromAngle(this.direction);
     directionVector.mult( this.velocity * interpolateBy);

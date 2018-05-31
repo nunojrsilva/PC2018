@@ -75,7 +75,7 @@ updatePlayers(P1, P2, GreenColisions1, GreenColisions2, InterpolateBy) ->
     VectorP1toP2 = subtractVectors(P1Position, P2Position),
     if
         Distance == 0 -> Divisor = 0.0;
-        true          -> Divisor = (1.0/(pow(Distance,2.0)))
+        true          -> Divisor = (1.0/(pow(Distance,1.3)))
     end,
 
     DirectionVecP1 = multiplyVector({cos(P1Direction), sin(P1Direction)}, P1Velocity * InterpolateBy),

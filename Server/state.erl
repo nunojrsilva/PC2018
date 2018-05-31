@@ -151,7 +151,7 @@ processKeyPressData( Data ) ->
 
 
 gameManager(State, TimeStarted, PidState, LastUpdateTime)->
-    ServerRefreshRate = 100,
+    ServerRefreshRate = 50, % WARNING : If you change this, change it in refreshTimer's Time too. (too lazy to change other stuff now)
     io:format("Game Manager a correr ~n"),
     % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
@@ -244,7 +244,7 @@ refreshTimer (Pid) ->
     %FramesPerSecond = 40,
     %Step = 1000/FramesPerSecond,
     %NumStep = integer_to_float(Step),
-    Time = 100, % WARNING : If you change this, change it in gameManager' ServerRefreshRate too. (too lazy to change other stuff now)
+    Time = 50, % WARNING : If you change this, change it in gameManager' ServerRefreshRate too. (too lazy to change other stuff now)
     receive
         stop ->
             {}

@@ -4,13 +4,14 @@ import java.net.*;
 import java.util.*;
 import java.lang.Thread;
 
+
 ControlP5 cp5;
 Group login;
 Group game;
 Group result;
 Group label;
 
-int server_refresh_rate = 100; // how many millis between refreshes
+int server_refresh_rate = 50; // how many millis between refreshes
 int last_update_time = millis();
 
 int arenaWidth = 1200;
