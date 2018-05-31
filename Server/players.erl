@@ -1,5 +1,5 @@
 -module(players).
--export([newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/4 ]).
+-export([newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/5 ]).
 -import(vectors2d, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
 
@@ -63,7 +63,7 @@ turnLeft(Player) ->
 
 
 
-updatePlayers(P1, P2, GreenColisions1, GreenColisions2) ->
+updatePlayers(P1, P2, GreenColisions1, GreenColisions2, InterpolateBy) ->
     {P1Position, P1Direction, P1Velocity, P1Energy, P1Type, P1FrontAcceleration, P1AngularVelocity, P1MaxEnergy, P1EnergyWaste, P1EnergyGain, P1Drag, P1Size} = P1,
     {P2Position, P2Direction, P2Velocity, P2Energy, P2Type, P2FrontAcceleration, P2AngularVelocity, P2MaxEnergy, P2EnergyWaste, P2EnergyGain, P2Drag, P2Size} = P2,
     % P1PositionOffset = {0,0},
@@ -78,18 +78,18 @@ updatePlayers(P1, P2, GreenColisions1, GreenColisions2) ->
         true          -> Divisor = (1.0/(pow(Distance,2.0)))
     end,
 
-    DirectionVecP1 = multiplyVector({cos(P1Direction), sin(P1Direction)}, P1Velocity),
-    DirectionVecP2 = multiplyVector({cos(P2Direction), sin(P2Direction)}, P2Velocity),
+    DirectionVecP1 = multiplyVector({cos(P1Direction), sin(P1Direction)}, P1Velocity * InterpolateBy),
+    DirectionVecP2 = multiplyVector({cos(P2Direction), sin(P2Direction)}, P2Velocity * InterpolateBy),
 
-    NewP1Position = addPairs( multiplyVector(VectorP1toP2, -Divisor), addPairs(P1Position, DirectionVecP1)),
-    NewP2Position = addPairs( multiplyVector(VectorP1toP2, Divisor), addPairs(P2Position, DirectionVecP2)),
+    NewP1Position = addPairs( multiplyVector(VectorP1toP2, -Divisor * InterpolateBy), addPairs(P1Position, DirectionVecP1)),
+    NewP2Position = addPairs( multiplyVector(VectorP1toP2, Divisor * InterpolateBy), addPairs(P2Position, DirectionVecP2)),
 
     if
-        P1Velocity > 0.0 -> NewP1Velocity = P1Velocity - P1Drag;
+        P1Velocity > 0.0 -> NewP1Velocity = P1Velocity - P1Drag*InterpolateBy;
         true -> NewP1Velocity = 0.0
     end,
     if
-        P2Velocity > 0.0 -> NewP2Velocity = P2Velocity - P1Drag;
+        P2Velocity > 0.0 -> NewP2Velocity = P2Velocity - P1Drag*InterpolateBy;
         true -> NewP2Velocity = 0.0
     end,
 

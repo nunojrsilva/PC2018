@@ -1,5 +1,5 @@
 -module(creatures).
--export([newCreature/1, updateCreature/3, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/3]).
+-export([newCreature/1, updateCreature/4, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/4]).
 -import(vectors2d, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 
 
@@ -17,7 +17,7 @@ newCreature(Type) ->
     {Position, Direction, DesiredDirection, Size, Type, Velocity}.
 
 
-updateCreature(Creature, P1, P2) ->
+updateCreature(Creature, P1, P2, InterpolateBy) ->
     {Position, Direction, _, Size, Type, Velocity} = Creature,
     {PositionP1, _, _, _, _, _, _, _, _, _, _, _} = P1,
     {PositionP2, _, _, _, _, _, _, _, _, _, _, _} = P2,
@@ -30,7 +30,7 @@ updateCreature(Creature, P1, P2) ->
         true -> NewDesiredDirection = subtractVectors(Position, PositionP2)
     end,
 
-    NewDirection = multiplyVector(normalizeVector(halfWayVector(Direction, NewDesiredDirection)), Velocity),
+    NewDirection = multiplyVector(normalizeVector(halfWayVector(Direction, NewDesiredDirection)), Velocity * InterpolateBy),
     NewPosition = addPairs(Position, NewDirection),
 
     {NewPosition, NewDirection, NewDesiredDirection, Size, Type, Velocity}.
@@ -66,6 +66,6 @@ checkColision( Player, Creature ) ->
         true -> false
     end.
 
-updateCreaturesList(Creatures, P1, P2) ->
+updateCreaturesList(Creatures, P1, P2, InterpolateBy) ->
     %lists:map(updateCreature, Creatures).
-    [ updateCreature(Creature, P1, P2) || Creature <- Creatures].
+    [ updateCreature(Creature, P1, P2, InterpolateBy) || Creature <- Creatures].
