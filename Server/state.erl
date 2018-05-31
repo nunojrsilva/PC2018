@@ -2,8 +2,8 @@
 -export ([start/0]).
 -import (math, [sqrt/1, pow/2, cos/1, sin/1]).
 -import (timer, [send_after/3]).
--import (creatures, [newCreature/1, updateCreature/3, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/3]).
--import (players, [newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/4 ]).
+-import (creatures, [newCreature/1, updateCreature/4, checkRedColisions/3, checkColisionsList/2, checkColision/2, updateCreaturesList/4]).
+-import (players, [newPlayer/1, accelerateForward/1, turnRight/1, turnLeft/1, updatePlayers/5 ]).
 -import (vectors2d, [multiplyVector/2, normalizeVector/1, halfWayVector/2, addPairs/2, distanceBetween/2, subtractVectors/2]).
 
 % O que será necessário manter no estado?
@@ -23,6 +23,9 @@
 
 % GAME END
 
+millis() ->
+  {Mega, Sec, Micro} = os:timestamp(),
+  (Mega*1000000 + Sec)*1000 + round(Micro/1000).
 
 start() ->
     % Nao sei se será necessária esta funcao, vamos manter just in case
@@ -42,7 +45,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
-                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self()) end ),
+                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self(), millis()) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue  ! {go, Game},
@@ -60,7 +63,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
                         [H | _] ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             PidState = self(),
-                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), PidState ) end),
+                            Game = spawn( fun() -> gameManager(newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), PidState, millis()) end),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue ! {go, Game},
@@ -149,7 +152,8 @@ processKeyPressData( Data ) ->
     Key.
 
 
-gameManager(State, TimeStarted, PidState)->
+gameManager(State, TimeStarted, PidState, LastUpdateTime)->
+    ServerRefreshRate = 50, % WARNING : If you change this, change it in refreshTimer's Time too. (too lazy to change other stuff now)
     io:format("Game Manager a correr ~n"),
     % Como calcular a pontuação?
     % Processo que faz a gestão do jogo entre dois users, contem stats e trata de toda a lógica da partida
@@ -164,9 +168,11 @@ gameManager(State, TimeStarted, PidState)->
                     endGame(State, TimeStarted, erlang:timestamp(), WhoLost, PidState); %gameManager(State, TimeStarted); % TODO: handle end game
                 true ->
                     io:format("Update with KeyPress~n"),
-                    NewState = updateWithKeyPress(State, KeyPressed, From),
+                    Now = millis(),
+                    InterpolateBy = (Now - LastUpdateTime)/ServerRefreshRate,
+                    NewState = updateWithKeyPress(State, KeyPressed, From, InterpolateBy),
                     %Res = formatState(NewState),
-                    gameManager(NewState, TimeStarted, PidState)
+                    gameManager(NewState, TimeStarted, PidState, Now)
             end;
         {leave, From} ->
             io:format("Alguem enviou leave"),
@@ -190,11 +196,13 @@ gameManager(State, TimeStarted, PidState)->
                     io:format("alguem morreu no refresh do gameManager~n"),
                     endGame(State, TimeStarted, erlang:timestamp(), WhoLost, PidState);
                 true ->
-                    NewState = update(State),
+                    Now = millis(),
+                    InterpolateBy = (Now - LastUpdateTime)/ServerRefreshRate,
+                    NewState = update(State, InterpolateBy),
                     Res = formatState(NewState, TimeStarted),
                     io:format("Novo estado : ~p~n",[Res]),
                     Pid1 ! Pid2 ! {line, list_to_binary(Res)},
-                    gameManager(NewState, TimeStarted, PidState)
+                    gameManager(NewState, TimeStarted, PidState, Now)
             end
             ;
         {addReds, _} ->
@@ -202,7 +210,7 @@ gameManager(State, TimeStarted, PidState)->
             {P1, P2, GreenCreatures, RedCreatures, ArenaSize } = State,
             io:format("Vou Adicionar uma criatura vermelha~n"),
             Creature = newCreature(r),
-            gameManager({P1, P2, GreenCreatures, RedCreatures ++ [Creature], ArenaSize}, TimeStarted, PidState)
+            gameManager({P1, P2, GreenCreatures, RedCreatures ++ [Creature], ArenaSize}, TimeStarted, PidState, LastUpdateTime)
 
     end.
 
@@ -238,7 +246,7 @@ refreshTimer (Pid) ->
     %FramesPerSecond = 40,
     %Step = 1000/FramesPerSecond,
     %NumStep = integer_to_float(Step),
-    Time = 100,
+    Time = 50, % WARNING : If you change this, change it in gameManager' ServerRefreshRate too. (too lazy to change other stuff now)
     receive
         stop ->
             {}
@@ -276,7 +284,7 @@ updateTop ({User, Score}, [ H = {User1, Score1} | T])->
 
 
 
-updateWithKeyPress(State, KeyPressed, From) ->
+updateWithKeyPress(State, KeyPressed, From, InterpolateBy) ->
     {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize } = State,
 
     if
@@ -286,17 +294,17 @@ updateWithKeyPress(State, KeyPressed, From) ->
                 KeyPressed == "a" -> NewPlayer = turnLeft(P1);
                 KeyPressed == "d" -> NewPlayer = turnRight(P1)
             end,
-            update({{NewPlayer, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize });
+            update({{NewPlayer, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }, InterpolateBy);
         From == PID_P2 ->
             if
                 KeyPressed == "w" -> NewPlayer = accelerateForward(P2);
                 KeyPressed == "a" -> NewPlayer = turnLeft(P2);
                 KeyPressed == "d" -> NewPlayer = turnRight(P2)
             end,
-            update({{P1, {U1,PID_P1}}, {NewPlayer, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize });
+            update({{P1, {U1,PID_P1}}, {NewPlayer, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }, InterpolateBy);
         true ->
             io:format("Unkown id ~p in updateWithKeyPress", [From]),
-            update({{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize })
+            update({{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize }, InterpolateBy)
     end.
 
 
@@ -320,30 +328,30 @@ checkLosses(State) ->
 
 
 
-update(State) ->
+update(State, InterpolateBy) ->
     {{P1, {U1,PID_P1}}, {P2, {U2,PID_P2}}, GreenCreatures, RedCreatures, ArenaSize} = State,
     {Green1, Green2} = GreenCreatures,
 
     % Update Players
     GreenColisions_P1 = checkGreenColisions(P1, GreenCreatures),
     GreenColisions_P2 = checkGreenColisions(P2, GreenCreatures),
-    {NewP1, NewP2} = updatePlayers(P1, P2, GreenColisions_P1, GreenColisions_P2),
+    {NewP1, NewP2} = updatePlayers(P1, P2, GreenColisions_P1, GreenColisions_P2, InterpolateBy),
 
     % Update Green Creatures
     Green1Colided = checkColision(P1, Green1) or checkColision(P2, Green1),
     Green2Colided = checkColision(P1, Green2) or checkColision(P2, Green2),
     if
         Green1Colided == true -> NewGreen1 = newCreature(g);
-        true -> NewGreen1 = updateCreature(Green1, P1, P2)
+        true -> NewGreen1 = updateCreature(Green1, P1, P2, InterpolateBy)
     end,
     if
         Green2Colided == true -> NewGreen2 = newCreature(g);
-        true -> NewGreen2 = updateCreature(Green2, P1, P2)
+        true -> NewGreen2 = updateCreature(Green2, P1, P2, InterpolateBy)
     end,
     NewGreenCreatures = { NewGreen1, NewGreen2 },
 
     % Update Red Creatures
-    NewRedCreatures = updateCreaturesList(RedCreatures, P1, P2),
+    NewRedCreatures = updateCreaturesList(RedCreatures, P1, P2, InterpolateBy),
 
     % Return New State
     { {NewP1, {U1,PID_P1}}, {NewP2,{U2,PID_P2}}, NewGreenCreatures, NewRedCreatures, ArenaSize }.

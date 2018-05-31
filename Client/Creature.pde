@@ -53,10 +53,11 @@ class Creature {
     // this.l = new ReentrantLock();
   }
 
-  void calcDirection() {
+  void calcDirection(float interpolateBy) {
     this.direction.set( (this.direction.x + this.desiredDirection.x)/2, (this.direction.y + this.desiredDirection.y)/2);
     this.direction.normalize();
     this.direction.mult(this.velocity);
+    this.direction.mult(interpolateBy);
   }
 
   void calcDesiredDirection( PlayerAvatar p1, PlayerAvatar p2) {
@@ -76,9 +77,9 @@ class Creature {
     this.desiredDirection.normalize();
   }
 
-  void prepareUpdate( PlayerAvatar p1, PlayerAvatar p2 ) {
+  void prepareUpdate( PlayerAvatar p1, PlayerAvatar p2, float interpolateBy ) {
     this.calcDesiredDirection(p1,p2);
-    this.calcDirection();
+    this.calcDirection(interpolateBy);
   }
 
   void update() {
