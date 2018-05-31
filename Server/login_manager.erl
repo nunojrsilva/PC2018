@@ -1,25 +1,25 @@
 -module (login_manager).
--export( [start/0, create_account/2, close_account/2, login/2, logout/1, online/0]).
-
-
-% Paradigma de Actores - usar diversos micro processos para encapsular o estado da nossa aplicação
+-export( [startLM/0, create_account/2, close_account/2, login/2, logout/1, online/0]).
 
 % Map é um mapa de username -> {password, online} sendo true se está online ou false caso contrário
 
 
-start () ->
+startLM () ->
     Pid = spawn ( fun() -> loop ( #{} ) end ),
-    register (?MODULE,Pid).
+    register (module,Pid).
 
 loop(Map) ->
     receive
         {create_account, User, Pass, From} ->
             case maps:find (User,Map) of
+                error when User =:= "", Pass =:= "" ->
+                    From ! {bad_arguments ,module},
+                    loop (Map);
                 error ->
-                    From ! {ok,?MODULE},
+                    From ! {ok,module},
                     loop ( maps:put(User, {Pass, true}, Map) );
                 _ ->
-                    From ! {user_exists, ?MODULE},
+                    From ! {user_exists, module},
                     loop (Map)
             end
         ;
@@ -27,11 +27,11 @@ loop(Map) ->
         { close_account, User, Pass, From} ->
             case maps:find (User, Map) of
                 {ok , {Pass, _ } } ->
-                        From ! { ok, ?MODULE},
+                        From ! { ok, module},
                         loop ( maps:remove (User,Map) );
 
                 _ ->
-                    From ! { invalid, ?MODULE},
+                    From ! { invalid, module},
                     loop ( Map )
             end
         ;
@@ -39,65 +39,65 @@ loop(Map) ->
         {login , User , Pass , From} ->
             case maps:find (User,Map) of
                 {ok, {Pass,false}} ->
-                    From ! { ok, ?MODULE},
+                    From ! { ok, module},
                     loop ( maps:put ( User, {Pass,true}, Map) ) ;
                 _ ->
-                    From ! { invalid, ?MODULE},
+                    From ! { invalid, module},
                     loop ( Map )
             end
         ;
         {logout, User , From} ->
             case maps:find (User,Map) of
                 {ok, {Pass,true}} ->
-                    From ! { ok, ?MODULE},
+                    From ! { ok, module},
                     loop ( maps:put ( User, {Pass, false}, Map) );
                 _ ->
-                    From ! {invalid, ?MODULE},
+                    From ! {invalid, module},
                     loop ( Map )
             end
         ;
         {online , From} ->
             %io:format("Entrei no online"),
             OnlineList = [ OnlineUser || {OnlineUser, { _, true} } <- maps:to_list(Map)], % Não nos interessa a password
-            From ! {OnlineList, ?MODULE},
+            From ! {OnlineList, module},
             loop ( Map )
     end
 .
 
 create_account(Username, Passwd) ->
-    ?MODULE ! {create_account, Username, Passwd , self()},
+    module ! {create_account, Username, Passwd , self()},
     receive
-        {Res, ?MODULE} -> Res
+        {Res, module} -> Res
     end.
 
 
 close_account(Username, Passwd) ->
-    ?MODULE ! { close_account, Username, Passwd, self() },
+    module ! { close_account, Username, Passwd, self() },
     receive
-        {Res, ?MODULE} ->
+        {Res, module} ->
             Res
     end.
 
 
 login(Username, Passwd) ->
-    ?MODULE ! { login, Username, Passwd, self() },
+    module ! { login, Username, Passwd, self() },
     receive
-        {Res, ?MODULE} ->
+        {Res, module} ->
             Res
     end
 .
 
 logout(Username) ->
-    ?MODULE ! { logout , Username, self() },
+    module ! { logout , Username, self() },
     receive
-        {Res, ?MODULE} ->
+        {Res, module} ->
             Res
     end
 .
 online() ->
-    ?MODULE ! { online, self()},
+    module ! { online, self()},
     receive
-        {Res, ?MODULE} ->
+        {Res, module} ->
             Res
     end
 .
