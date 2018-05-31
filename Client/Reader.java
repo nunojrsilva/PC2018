@@ -234,6 +234,9 @@ public class Reader extends Thread {
             if(splitList[0].equals("result")){
               a.gameState = a.result_screen;
 
+              for(String a: splitList)
+                this.message += "\n" + a;
+
               this.l.lock();
               try {
                 this.ready = false;

@@ -57,12 +57,14 @@ class Creature {
     }
   }
 
+
   void calcDirection() {
     this.l.lock();
     try {
       this.direction.set( (this.direction.x + this.desiredDirection.x)/2, (this.direction.y + this.desiredDirection.y)/2);
       this.direction.normalize();
       this.direction.mult(this.velocity);
+      this.direction.mult(interpolateBy);
     }finally{
       this.l.unlock();
     }
@@ -90,9 +92,9 @@ class Creature {
     }
   }
 
-  void prepareUpdate( PlayerAvatar p1, PlayerAvatar p2 ) {
+  void prepareUpdate( PlayerAvatar p1, PlayerAvatar p2, float interpolateBy ) {
     this.calcDesiredDirection(p1,p2);
-    this.calcDirection();
+    this.calcDirection(interpolateBy);
   }
 
   void update() {

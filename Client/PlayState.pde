@@ -44,7 +44,8 @@ class PlayState {
       this.thisPlayerPoints = score1;
       this.adversaryPoints  = score2;
 
-      this.assets = assets;
+    this.assets = assets;
+    last_update_time = millis();
   }
 
   void update(PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
@@ -59,28 +60,32 @@ class PlayState {
       this.thisPlayerPoints = score1;
       this.adversaryPoints  = score2;
 
+
       this.assets = assets;
     }finally{
       this.l.unlock();
     }
+    last_update_time = millis();
   }
 
-  void prepareUpdate() {
-    this.thisPlayer.prepareUpdate( this.adversary, 0 );
-    this.adversary.prepareUpdate( this.thisPlayer, 0 );
+  void prepareUpdate(float interpolateBy) {
+    // this.thisPlayer.processKeys( this.keys );
 
-    this.greens.get(0).prepareUpdate(this.thisPlayer, this.adversary);
-    this.greens.get(1).prepareUpdate(this.thisPlayer, this.adversary);
+    this.thisPlayer.prepareUpdate( this.adversary, 0, interpolateBy);
+    this.adversary.prepareUpdate( this.thisPlayer, 0, interpolateBy);
+    this.greens.get(0).prepareUpdate(this.thisPlayer, this.adversary, interpolateBy);
+    this.greens.get(1).prepareUpdate(this.thisPlayer, this.adversary, interpolateBy);
 
     for(Creature red: this.reds) {
-      red.prepareUpdate(this.thisPlayer, this.adversary);
+      red.prepareUpdate(this.thisPlayer, this.adversary, interpolateBy);
     }
+
   }
 
-  void update() {
+  void update( float interpolateBy ) {
 
-    this.thisPlayer.update();
-    this.adversary.update();
+    this.thisPlayer.update(interpolateBy);
+    this.adversary.update(interpolateBy);
 
     this.greens.get(0).update();
     this.greens.get(1).update();
