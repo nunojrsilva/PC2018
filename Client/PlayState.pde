@@ -34,40 +34,36 @@ class PlayState {
   }
 
   PlayState (PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
-    this.thisPlayer = a;
-    this.adversary  = b;
+      this.thisPlayer = a;
+      this.adversary  = b;
 
-    this.greens = green;
+      this.greens = green;
 
-    this.reds = red;
+      this.reds = red;
 
-    this.thisPlayerPoints = score1;
-    this.adversaryPoints  = score2;
+      this.thisPlayerPoints = score1;
+      this.adversaryPoints  = score2;
 
-    this.assets = assets;
+      this.assets = assets;
   }
 
   void update(PlayerAvatar a, PlayerAvatar b, ArrayList<Creature> green, ArrayList<Creature> red, float score1, float score2) {
-    this.thisPlayer = a;
-    this.adversary  = b;
+    this.l.lock();
+    try {
+      this.thisPlayer = a;
+      this.adversary  = b;
 
-    this.greens = green;
+      this.greens = green;
+      this.reds = red;
 
-    this.reds = red;
+      this.thisPlayerPoints = score1;
+      this.adversaryPoints  = score2;
 
-    this.thisPlayerPoints = score1;
-    this.adversaryPoints  = score2;
-
-    this.assets = assets;
+      this.assets = assets;
+    }finally{
+      this.l.unlock();
+    }
   }
-
-  // void updatePlayer1(PlayerAvatar p){
-  //   this.thisPlayer.update(p);
-  // }
-  //
-  // void updatePlayer2(PlayerAvatar p){
-  //   this.thisPlayer.update(p);
-  // }
 
   void prepareUpdate() {
     // this.thisPlayer.processKeys( this.keys );

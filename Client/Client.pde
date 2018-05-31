@@ -190,7 +190,7 @@ void setup() {
     .onClick( new CallbackListener() {
       public void controlEvent(CallbackEvent theEvent) {
         writeSocket.login(username, password);
-        // gameState = waiting_screen;
+        gameState = waiting_screen;
        }
     })
     ;
@@ -341,25 +341,28 @@ void draw_result_screen(){
 }
 
 boolean connect(){
-  if( socket == null || !socket.isConnected() ){
+  // if( socket == null || !socket.isConnected() ){
+  socket = null;
     try{
       socket = new Socket("localhost", 12345);
     }catch(Exception e){
       e.printStackTrace();
       server_connection_status = "Server offline";
-      System.out.println("ggggggg");
+      // System.out.println("ggggggg");
       // server_connection_label.setValue("Server offline");
     }
-    System.out.println("aaaaaaa");
-    System.out.println(server_connection_status);
+    print(socket);
+    // System.out.println("aaaaaaa");
+    // System.out.println(server_connection_status);
 
     if( socket != null && socket.isConnected() ){
+    // System.out.println("antes de connect do writer e reader aaaaaaa");
       writeSocket = new Writer(socket);
       server_connection_status = writeSocket.connect();
       readSocket = new Reader(socket, state, this);
       readSocket.connect();
     }
     else return false;
-  }
+  // }
   return true;
 }

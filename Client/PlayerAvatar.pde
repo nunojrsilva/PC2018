@@ -28,6 +28,7 @@ class PlayerAvatar {
     this.direction = 0;
     this.velocity  = 0;
     this.energy    = this.maxEnergy;
+    this.l = new ReentrantLock();
   }
 
   PlayerAvatar(float posX, float posY, int type) {
@@ -56,19 +57,23 @@ class PlayerAvatar {
   }
 
   void update(float posX, float posY, float direction, float velocity, float energy, float type, float frontAcceleration, float angularVelocity, float maxEnergy, float energyWaste, float energyGain, float drag, float size) {
-    this.type = type;
-    this.position  = new PVector(posX, posY);
-    this.direction = direction;
-    this.velocity  = velocity;
-    this.energy    = energy;
-    this.type      = type;
-    this.frontAcceleration = frontAcceleration;
-    this.angularVelocity   = angularVelocity;
-    this.maxEnergy         = maxEnergy;
-    this.energyWaste       = energyWaste;
-    this.energyGain        = energyGain;
-    this.drag              = drag;
-    // this.l = new ReentrantLock();
+    this.l.lock();
+    try {
+      this.type = type;
+      this.position  = new PVector(posX, posY);
+      this.direction = direction;
+      this.velocity  = velocity;
+      this.energy    = energy;
+      this.type      = type;
+      this.frontAcceleration = frontAcceleration;
+      this.angularVelocity   = angularVelocity;
+      this.maxEnergy         = maxEnergy;
+      this.energyWaste       = energyWaste;
+      this.energyGain        = energyGain;
+      this.drag              = drag;
+    }finally{
+      this.l.unlock();
+    }
   }
 
 
@@ -98,32 +103,52 @@ class PlayerAvatar {
   }
 
   void accelerateForward() {
-    if( this.energy > this.energyWaste ){
-      this.velocity  += this.frontAcceleration;
-      this.energy    -= this.energyWaste;
+    this.l.lock();
+    try {
+      if( this.energy > this.energyWaste ){
+        this.velocity  += this.frontAcceleration;
+        this.energy    -= this.energyWaste;
+      }
+    }finally{
+      this.l.unlock();
     }
   }
 
   void turnRight() {
-    if( this.energy > this.energyWaste ){
-      this.direction += this.angularVelocity;
-      this.energy    -= this.energyWaste;
+    this.l.lock();
+    try {
+      if( this.energy > this.energyWaste ){
+        this.direction += this.angularVelocity;
+        this.energy    -= this.energyWaste;
+      }
+    }finally{
+      this.l.unlock();
     }
   }
 
   void turnLeft() {
-    if( this.energy > this.energyWaste ){
-      this.direction  -= this.angularVelocity;
-      this.energy     -= this.energyWaste;
+    this.l.lock();
+    try {
+      if( this.energy > this.energyWaste ){
+        this.direction  -= this.angularVelocity;
+        this.energy     -= this.energyWaste;
+      }
+    }finally{
+      this.l.unlock();
     }
   }
 
   /** Receives info from server **/
   void update( int posX, int posY, float direction, float velocity, float energy ) {
-    this.position.set(posX, posY);
-    this.direction = direction;
-    this.velocity  = velocity;
-    this.energy    = energy;
+    this.l.lock();
+    try {
+      this.position.set(posX, posY);
+      this.direction = direction;
+      this.velocity  = velocity;
+      this.energy    = energy;
+    }finally{
+      this.l.unlock();
+    }
   }
 
   void prepareUpdate( PlayerAvatar otherPlayer, float extraEnergy ) {
@@ -139,8 +164,6 @@ class PlayerAvatar {
     PVector directionVector = PVector.fromAngle(this.direction);
     directionVector.mult( this.velocity );
     this.positionOffset.add( directionVector );
-
-
 
     this.energyToAdd = extraEnergy;
   }

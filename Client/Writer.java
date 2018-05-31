@@ -19,6 +19,7 @@ public class Writer {
   public Writer(Socket socket/*, PlayState state*/){
     this.socket = socket;
     this.out = null;
+      // System.out.println("Write Socket msg: passou no construtor");
     // this.gameState = gameState;
     // this.message = "";
   }
@@ -28,10 +29,10 @@ public class Writer {
       out = new PrintWriter(socket.getOutputStream());
     }catch(Exception e){
       e.printStackTrace();
-      System.out.println("Write Socket msg: Server offline");
+      // System.out.println("Write Socket msg: Server offline");
+      // System.out.println("writeSocket out: " + out);
     }
-    System.out.println("Write Socket msg: Server online");
-    return "Write Socket msg: Server online";
+    return "Write Socket msg: Server offline";
   }
 
   public void disconnect() throws IOException{
@@ -44,7 +45,8 @@ public class Writer {
       out.flush();
     }catch (Exception e) {
       e.printStackTrace();
-      System.exit(1);
+      // socket = null;
+      // System.exit(1);
     }
   }
 
@@ -55,7 +57,8 @@ public class Writer {
       out.flush();
     }catch (Exception e){
       e.printStackTrace();
-      System.exit(1);
+      // socket = null;
+      // System.exit(1);
     }
   }
 
@@ -65,7 +68,8 @@ public class Writer {
       out.flush();
     }catch (Exception e) {
       e.printStackTrace();
-      System.exit(1);
+      // socket = null;
+      // System.exit(1);
     }
   }
 }
