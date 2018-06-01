@@ -156,8 +156,8 @@ logoutUser (Username, Sock) ->
                 "logout" ->
                     case logout(Username) of
                         ok ->
-                            gen_tcp:send(Sock, <<"logout successful\n">>),
-                            gen_tcp:close(Sock);
+                            gen_tcp:send(Sock, <<"logout successful\n">>);
+                            %gen_tcp:close(Sock);
                         _ ->
                             gen_tcp:send(Sock,<<"logout error\n">>),
                             logoutUser(Username, Sock)

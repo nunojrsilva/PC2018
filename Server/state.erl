@@ -47,7 +47,8 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
                             {UsernameQueue, LevelQueue, UserProcessQueue}  = H,
                             io:format(" Processo adversário de ~p é ~p ~n", [Username, H]),
                             io:format(" Novo game~n"),
-                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), self(), millis()) end ),
+                            PidState = self(),
+                            Game = spawn( fun() -> gameManager (newState({Username, UserProcess}, {UsernameQueue, UserProcessQueue}), erlang:timestamp(), PidState, millis()) end ),
                             Timer = spawn( fun() -> refreshTimer(Game) end),
                             SpawnReds = spawn ( fun() -> addReds(Game) end),
                             UserProcess ! UserProcessQueue  ! {go, Game},
@@ -76,7 +77,9 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
 
         {gameEnd, Result, ResToSend, Pid1, Pid2, FromGame} ->
             io:format("Recebi Game ended ~n"),
-            [{GamePid, Timer, SpawnReds}] = lists:filter( fun ({G, _, _}) ->  (G == FromGame) end, GamesUnderGoing),
+            L = [{GamePid, Timer, SpawnReds}] = lists:filter( fun ({G, _, _}) ->  (G == FromGame) end, GamesUnderGoing),
+            Res = length(L),
+            io:format("Lista : ~p~n", [Res]),
             Timer ! SpawnReds ! stop,
             {{Winner, Score}, {Loser, Score}} = Result,
             io:format("Result : ~p~n", [Result]),
@@ -130,7 +133,7 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
             NewTopLevel_ = updateTop ({Loser, LoserLevel}, NewTopLevel),
             NewMap = maps:put( Winner, {NewGamesWonWinner, NewWinnerLevel}, Users_Score),
             TopToShow = formatTops(NewTopScore_, NewTopLevel_),
-            DataToSend = ResToSend ++ "," ++ TopToShow,
+            DataToSend = ResToSend ++ "," ++ TopToShow ++ "\n",
             Pid1 ! Pid2 ! {gameEnd, DataToSend},
             %NewMap = maps:put( Username2, {NewGamesWon2, NewUserLevel2}, AuxMap),
             estado (NewMap, Waiting, NewTopScore_, NewTopLevel_, GamesUnderGoing -- [{GamePid, Timer, SpawnReds}])
