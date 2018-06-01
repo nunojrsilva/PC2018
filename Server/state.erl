@@ -129,8 +129,8 @@ estado(Users_Score, Waiting, TopScoreTimes, TopScoreLevels, GamesUnderGoing) ->
             %Update Tops
             NewTopScore = updateTop ({Winner, Score}, TopScoreTimes),
             NewTopScore_ = updateTop ({Loser, Score}, NewTopScore),
-            NewTopLevel = updateTop ({Winner, NewWinnerLevel}, TopScoreLevels),
-            NewTopLevel_ = updateTop ({Loser, LoserLevel}, NewTopLevel),
+            NewTopLevel = updateTopLevel ({Winner, NewWinnerLevel}, TopScoreLevels),
+            NewTopLevel_ = updateTopLevel ({Loser, LoserLevel}, NewTopLevel),
             NewMap = maps:put( Winner, {NewGamesWonWinner, NewWinnerLevel}, Users_Score),
             TopToShow = formatTops(NewTopScore_, NewTopLevel_),
             DataToSend = ResToSend ++ "," ++ TopToShow ++ "\n",
@@ -285,6 +285,22 @@ updateTop ({User, Score}, [ H = {User1, Score1} | T])->
             Res;
         true ->
             [H] ++ updateTop({User, Score}, T)
+    end
+    .
+
+%
+updateTopLevel ({User, Score}, List)->
+    OldTop = lists:keyfind(User, 1, List),
+    if
+        OldTop == false ->
+            List ++ [{User, Score}];
+        true ->
+        NewList = List -- [OldTop],
+        NewValue = [{User, Score}],
+        NewList_ = NewList ++ NewValue,
+        Res = lists:keysort(2, NewList_),
+        NewRes = lists:reverse(Res),
+        NewRes
     end
     .
 
