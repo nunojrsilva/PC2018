@@ -66,8 +66,8 @@ class PlayState {
   void prepareUpdate(float interpolateBy) {
     // this.thisPlayer.processKeys( this.keys );
 
-    this.thisPlayer.prepareUpdate( this.adversary, 0, interpolateBy);
-    this.adversary.prepareUpdate( this.thisPlayer, 0, interpolateBy);
+    this.thisPlayer.prepareUpdate( this.adversary, interpolateBy);
+    this.adversary.prepareUpdate( this.thisPlayer, interpolateBy);
     this.greens.get(0).prepareUpdate(this.thisPlayer, this.adversary, interpolateBy);
     this.greens.get(1).prepareUpdate(this.thisPlayer, this.adversary, interpolateBy);
 
@@ -78,6 +78,8 @@ class PlayState {
   }
 
   void update( float interpolateBy ) {
+
+    
 
     this.thisPlayer.update(interpolateBy);
     this.adversary.update(interpolateBy);
